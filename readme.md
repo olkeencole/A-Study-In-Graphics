@@ -13,7 +13,8 @@ This will likely be an ongoing project for sometime until I've made a journey th
 The goal currently as it stands is to create 5 samples for each of the popular APIs listed below:
 
 1 - OpenGL Core
-2 - Software Rendering - where all the mysteries of graphics will be made manifest
+2 - Software Rendering 
+  - where all the mysteries of graphics will be made manifest
 3 - Vulcan
 4 - DirectX 11
 5 - DirectX 12 
@@ -39,3 +40,9 @@ Each API folder contains 5 demos for the purposes of comparing the APIs against 
 
 5. Simple FPS walkthrough with no interaction? 
     Skybox? OBJ loading? Definitely no collisions 
+
+
+BUILDING
+
+Currently, I only have Windows builds at the moment. You'll need Visual Studio to compile them. The build.bat files will build the files, but it'll need to be able to find vsvarsall.bat, which is typically located in Program Files/Visual Studio. If you have a different version of Visual Studio, you'll need to modify the second line. 
+
