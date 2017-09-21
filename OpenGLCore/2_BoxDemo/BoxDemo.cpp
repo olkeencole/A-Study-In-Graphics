@@ -33,6 +33,7 @@ using namespace std;
 #define Length(value) ( sizeof(value) / sizeof(value[0] ) ) //Length of an Array
 
 
+
 /***********************************
   - OpenGL TYPEDEFS
   Since we are doing the "wrangling" or initialization of OpenGL
@@ -59,7 +60,6 @@ using namespace std;
 //OPENGL CONSTANT FLAGS
 #define GL_ARRAY_BUFFER                   0x8892
 #define GL_STATIC_DRAW                    0x88E4
-
 #define GL_VERTEX_SHADER                  0x8B31
 #define GL_FRAGMENT_SHADER                0x8B30
 
@@ -97,7 +97,6 @@ typedef GLint WINAPI gl_GetUniformLocation(GLuint program, const GLchar *name);
 
 typedef void WINAPI gl_UniformMatrix4fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 
-
 gl_GenVertexArrays  		*glGenVertexArrays;
 gl_BindVertexArray  		*glBindVertexArray; 
 gl_GenBuffers       		*glGenBuffers; 
@@ -129,9 +128,14 @@ static int WindowWidth  = 800;
 static int WindowHeight = 600; 
 
 
-// SIMPLE MATH DATA STRUCTURES
 
-//Vector 3
+
+// SIMPLE MATH DATA STRUCTURES
+// Vector3
+// Matrix4
+
+
+//Vector3
 struct Vector3
 {
     public: 
@@ -297,6 +301,7 @@ class Matrix4 {
 	    m[1] = m[2] = m[3]  = m[4]  = m[6] = m[7] = m[8] = m[9] = m[11] = m[12] = m[13] = m[14] = 0.0f;
 	} 
 
+	//TODO(keenan): Run tests and makes ure there's no glitch here
 	Matrix4 Multiply(Matrix4 &m1, Matrix4 &m2)
 	{	
 		Matrix4 result = Matrix4(); 
@@ -386,8 +391,8 @@ class Matrix4 {
 
 
 struct Camera {
-	Vector3 position = Vector3(0, 0, 5.0f); 
-	Vector3 forward = Vector3( 0,  0, -1.0f); // what we are looking at// direction facing // or could think of it as rotation I suppose. 
+	Vector3 position = Vector3(0, 0,   5.0f); 
+	Vector3 forward  = Vector3(0,  0, -1.0f); // what we are looking at// direction facing // or could think of it as rotation I suppose. 
 
 	float fieldOfView =  60.0f; 
 	float nearClip = .1f; 
@@ -399,10 +404,11 @@ Camera camera;
 
 Matrix4 Perspective( float fov, float aspectRatio,  float n, float f) {
 	Matrix4 mat;
+
 	float tanHalfFovy = tan( fov / 2.0f); 
 	float d = 1.0f / tanHalfFovy;
 
-	float a = (n+f)/ (n-f);//(-(f + n) ) / (f-n); 
+	float a = (n+f )/(n-f);//(-(f + n) ) / (f-n); 
 	float B = (2 * n * f)/ (n-f); //(-2 * f * n)    / (f-n);
 
 	mat.Set( 	   d/aspectRatio,          0,      0,    0 , 
@@ -421,21 +427,18 @@ Matrix4 LookAt(Vector3 pos, Vector3 target, Vector3 up) {
 
 	Matrix4 result = Matrix4();
 
-/// I think we actually have a transpose here. (or inverse). This isn't necessarily a matrix of the camera transformation but the transpose that converts
-	// other matrices to thhe space.
-
-	//Reall test will be when we start moving the camera around
-	// Right now its a diagonal matrix no matter what
 	result.Set(    right.x,    localUp.x,  facing.x, 0, 
 			       right.y,    localUp.y,  facing.y, 0,
 			       right.z,    localUp.z,  facing.z, 0,
-	  -Dot(right  , pos),     -Dot(localUp, pos),    -Dot(facing, pos),   1.0f );
+	      -Dot(right, pos),     -Dot(localUp, pos),    -Dot(facing, pos),   1.0f );
 	return result;
 }
 
 
 /*
   VERTEX AND FRAG SHADER
+  Simple unlit shaders that just use the MVP matrix and spit out 
+  some vertex colors
 */
 
 const char* vertexShader = 
@@ -459,8 +462,10 @@ const char* fragmentShader =
 	"}\n\0";
 
 
+
+
 static GLuint VAO,VBO, Shader; 
- float zRotation = 0;
+float zRotation = 0;
 
  Vector3 mPositions[] = {
   Vector3( 0.0f,  0.0f,  0.0f), 
@@ -472,9 +477,31 @@ static GLuint VAO,VBO, Shader;
   Vector3( 1.3f, -2.0f, -2.5f),  
   Vector3( 1.5f,  2.0f, -2.5f), 
   Vector3( 1.5f,  0.2f, -1.5f), 
-  Vector3(-1.3f,  1.0f, -1.5f) 	
- };
+  Vector3(-1.3f,  1.0f, -1.5f),
 
+  Vector3(-3.7f,  3.0f, -7.5f),  
+  Vector3( 3.3f, -2.0f, -2.5f),  
+  Vector3( 4.5f,  4.0f, -8.5f), 
+  Vector3( -4.5f,  5.2f, -9.5f), 
+  Vector3(-3.3f,  -5.0f, -15.5f),
+
+  Vector3(-1.7f, -3.0f, -7.5f),  
+  Vector3( 1.3f, -2.0f, -2.5f),  
+  Vector3( 4.5f, -4.0f, -4.5f), 
+  Vector3( 2.5f,  4.2f, -7.5f), 
+  Vector3(-2.3f,  -5.0f, -7.5f),
+
+  Vector3(-4.7f, -3.3f,  -7.5f),  
+  Vector3( 2.332f, -2.6f, -3.5f),  
+  Vector3( 3.2f, -2.7f, -4.5f), 
+  Vector3(-3.5f,  3.2f, -7.5f), 
+  Vector3(-2.3f,  -2.43f, -7.5f) ,
+
+  Vector3( 6.0f,  0.7f, -4.5f), 
+  Vector3(-5.5f,  -0.2f, -7.5f), 
+  Vector3( 6.1f,  -1.43f, -7.5f) ,
+  Vector3(-7.2f,  -1.2f, -7.5f)
+ };
  Vector3 modelPosition = Vector3(.1f, 0, 0);
 
 
@@ -482,12 +509,12 @@ static GLuint VAO,VBO, Shader;
 // Vertex Infomation with Position and Color Stored in the Vertices
 float Cube_Color[] = {
     // Vert Position          // Color          
-    -0.5f, -0.5f, -0.5f,  1.0f,  0.0f, 0.0f,  
+    -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 0.0f,  
      0.5f, -0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  
      0.5f,  0.5f, -0.5f,  0.0f,  0.0f, 1.0f,  
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, 0.0f,  
-    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, 0.0f,  
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, 0.0f,  
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, 1.0f,  
+    -0.5f,  0.5f, -0.5f,  1.0f,  0.0f, 0.0f,  
+    -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 0.0f,  
 
     -0.5f, -0.5f,  0.5f,  1.0f,  1.0f, 0.0f,   
      0.5f, -0.5f,  0.5f,  0.0f,  1.0f, 0.0f,   
@@ -503,30 +530,29 @@ float Cube_Color[] = {
     -0.5f, -0.5f,  0.5f,  1.0f,  1.0f, 0.0f,  
     -0.5f,  0.5f,  0.5f,  0.0f,  1.0f, 1.0f,  
 
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f,  1.0f,  
-     0.5f, -0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  
-     0.5f, -0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  
+     0.5f,  0.5f,  0.5f,  1.0f,  1.0f, 0.0f,  
+     0.5f,  0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  
+     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, 1.0f,  
+     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, 1.0f,  
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f, 0.0f,  
+     0.5f,  0.5f,  0.5f,  1.0f,  1.0f, 0.0f,  
 
-    -0.5f, -0.5f, -0.5f,  0.0f,  1.0f,  0.5f,  
-     0.5f, -0.5f, -0.5f,  0.0f,  1.0f,  0.5f,  
-     0.5f, -0.5f,  0.5f,  0.0f,  1.0f,  0.5f,  
-     0.5f, -0.5f,  0.5f,  0.0f,  1.0f,  0.5f,  
-    -0.5f, -0.5f,  0.5f,  0.0f,  1.0f,  0.5f,  
-    -0.5f, -0.5f, -0.5f,  0.0f,  1.0f,  0.5f,  
+    -0.5f, -0.5f, -0.5f,  0.0f,  1.0f, 1.0f,  
+     0.5f, -0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f, 1.0f,  
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f, 1.0f,  
+    -0.5f, -0.5f,  0.5f,  1.0f,  1.0f, 0.0f,  
+    -0.5f, -0.5f, -0.5f,  0.0f,  1.0f, 1.0f,  
 
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
-     };
+    -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 0.0f, 
+     0.5f,  0.5f, -0.5f,  0.0f,  1.0f, 0.0f, 
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 
+    -0.5f,  0.5f,  0.5f,  1.0f,  0.0f, 0.0f, 
+    -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 0.0f
+};
 
 
-//Initialize OpenGL Buffers
 void InitializeOpenGLBuffers()
 {
 	glEnable(GL_DEPTH_TEST);  
@@ -536,7 +562,7 @@ void InitializeOpenGLBuffers()
 
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Cube_Color), Cube_Color,  GL_STATIC_DRAW ); //6
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Cube_Color), Cube_Color, GL_STATIC_DRAW );
 
 	int index = 6; 
 	glVertexAttribPointer(0 , 3,  GL_FLOAT, GL_FALSE, sizeof(float) * index ,   (void *) 0); //6 
@@ -551,7 +577,7 @@ void InitializeOpenGLBuffers()
 
  void InitShader()
  {
- 	//Debuging
+ 	//Debugging
  	char log[512]; 
  	int success;
  	GLuint vertex, frag, shader; 
@@ -590,9 +616,12 @@ void InitializeOpenGLBuffers()
  }
 
 
+ //Draw Function
  void RenderOpenGLContext(GLuint shader)
  {
- 	//Camera Initialization
+ 	//PREPARE CAMERA AND MATRICES
+ 	Matrix4 model = Matrix4(); //Constructor sets to Identity
+
  	Matrix4 view = Matrix4();
  	view.identity();
  	view = LookAt(camera.position,  camera.position+camera.forward, Vector3(0, 1.0f, 0.0f) );
@@ -602,8 +631,6 @@ void InitializeOpenGLBuffers()
 
  	glUseProgram(shader); 
 
- 	Matrix4 model = Matrix4();
- 	model.identity();
  	GLuint shader_model_id = glGetUniformLocation(shader, "model"); 
  	glUniformMatrix4fv(shader_model_id, 1, GL_FALSE,  &model.m[0]);
 
@@ -611,7 +638,7 @@ void InitializeOpenGLBuffers()
  	glUniformMatrix4fv(shader_view_id, 1, GL_FALSE,   &view.m[0] );
 
  	GLuint shader_proj_id = glGetUniformLocation(shader, "proj"); 
-    glUniformMatrix4fv(shader_proj_id, 1, GL_FALSE, &proj.m[0]);   //cd);//&proj.m[0]);    value_ptr(projMatrix)
+    glUniformMatrix4fv(shader_proj_id, 1, GL_FALSE,   &proj.m[0]);   //cd);//&proj.m[0]);    value_ptr(projMatrix)
 
  	glBindVertexArray(VAO);
 
@@ -667,7 +694,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			if( wglMakeCurrent( DeviceContext, renderContext) )
 			{
 				cout << "Making WGL Current and attempting to fetch functions" << endl;
-				// MessageBoxA(0 , (char*) glGetString(GL_VERSION), "OPENGL_VERSION", 0);
 				
 				//Misspelling: wglCreateContextAttribsARB
 				wgl_create_attrib_arb* wglCreateContextAttribARB = (wgl_create_attrib_arb*)
@@ -698,7 +724,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				glGetShaderInfoLog   = (gl_GetShaderInfoLog  *) wglGetProcAddress("glGetShaderInfoLog"); 
 				glUniformMatrix4fv   = (gl_UniformMatrix4fv *)  wglGetProcAddress("glUniformMatrix4fv");
 
-				// wglGetProcAddrss("wglCreteContextAttribARB");
 				if(wglCreateContextAttribARB ) {
 						OutputDebugStringA( "Found Contrext Attrib Function\n" );
 				        // MessageBoxA(0 , (char*) ("Found Context Attrib Function"), "OPENGL_VERSION", 0);
@@ -776,11 +801,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				 modelPosition.x -= .2f;
 			}
 			if(wParam == VK_DOWN) {
-				 modelPosition.y  += .2f;
+				 modelPosition.y  -= .2f;
 				//camera.position.z += .2f;
 			}
 			if(wParam == VK_UP) {
-				 modelPosition.y -= .2f;
+				 modelPosition.y += .2f;
 				 //camera.position.z -= .2f;
 			}
 		}break;
@@ -790,6 +815,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hwnd, uMsg, wParam ,lParam);
 }
 
+bool Running = false;
+
 int CALLBACK WinMain(
     HINSTANCE Instance,
     HINSTANCE PrevInstance,
@@ -798,10 +825,10 @@ int CALLBACK WinMain(
 )
 {
 	//Create and Register WindowClass	
-	WNDCLASS wc = {}; 
-	wc.lpfnWndProc = WindowProc; 
-	wc.hInstance   = Instance; 
-	wc.lpszClassName   = "Windows Test";
+	WNDCLASS         wc = {}; 
+	wc.lpfnWndProc      = WindowProc; 
+	wc.hInstance        = Instance; 
+	wc.lpszClassName    = "Windows Test";
 
 	RegisterClass(&wc);
 	//Create Window	
@@ -817,22 +844,30 @@ int CALLBACK WinMain(
 	ShowWindow(WindowHandle, WindowShow);
 
 
-//Add PeekMessage
 
-	MSG msg = {}; 
-	//PostMessage
-	while( GetMessage( &msg, NULL, 0, 0))  
+	//MSG msg = {}; 
+	Running = true;
+	while(Running ) 
 	{
-			HDC DeviceContext = GetDC(WindowHandle);
-			glViewport(0,0, WindowWidth, WindowHeight);
-			glClearColor(0.0f, .0f, .0f, 0.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		MSG msg; 
+		//GetMessage( &msg, NULL, 0, 0))  
+		if(PeekMessage(&msg, 0,0, 0, PM_REMOVE )) { 
 
-			RenderOpenGLContext(Shader);
-			SwapBuffers(DeviceContext); 
+			if( msg.message == WM_QUIT)
+			{
+				Running = false;
+			}
+			TranslateMessage(&msg); 
+			DispatchMessage( &msg); 
+		}
 
-		TranslateMessage(&msg); 
-		DispatchMessage( &msg); 
+		HDC DeviceContext = GetDC(WindowHandle);
+		glViewport(0,0, WindowWidth, WindowHeight);
+		glClearColor(0.0f, .0f, .0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		RenderOpenGLContext(Shader);
+		SwapBuffers(DeviceContext);
 	}
 
 
