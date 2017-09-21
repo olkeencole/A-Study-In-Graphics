@@ -5,13 +5,15 @@ $Creator
 $Notice: 
 ============================================================*/
 
-/* Graphics Curriculum - Graphics School - Graphics Academy - Graphics Programming GraphProSchool
-Graph Pro Academy
-ProGraph Academy
-ProDemy
-- 3D Pro Academy
-Pro 3D academy
-*/
+/* A Study In Graphics
+   API: OpenGL
+   Demo: Simple Triangle With Color Interpolation
+
+   - As simple as a script can be initializing OpenGLCore from the 
+     Windows API and displaying a polygon
+
+
+*/ 
 
 
 #include <Windows.h>
@@ -20,12 +22,17 @@ Pro 3D academy
 
 using namespace std;
 
+//Triangle Data with Vertex Color
 float verts[] = { 
-	-1.0f, -1.0f, 0,  1,0,0,
-	 .95f,    -1, 0,  0,1,0,
-	    0,   .9f, 0,  0,0,1,
+	-1.0f,  -1.0f,  0,  1, 0, 0,
+	 .95f,     -1,  0,  0, 1, 0,
+	    0,    .9f,  0,  0, 0, 1,
 }; 
 
+
+/*
+  Shaders
+*/
 const char* vertexShader = 
 	"#version 330 core\n"
 	"layout (location = 0) in vec3 verts;\n" 
@@ -124,8 +131,7 @@ gl_GetProgramiv       *glGetProgramiv      ;
 gl_GetProgramInfoLog  *glGetProgramInfoLog ;
 gl_GetShaderiv        *glGetShaderiv       ;
 gl_GetShaderInfoLog   *glGetShaderInfoLog  ;
-// // gl_GetShaderSource    *glGetShaderSource   ;
-// gl_GetUniformLocation *glGetUniformLocation;
+
 
 void InitOpenGL()
 {
