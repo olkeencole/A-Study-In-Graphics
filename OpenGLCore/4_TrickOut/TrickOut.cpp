@@ -931,6 +931,58 @@ bool InArea(Vector3 pos,  Vector3 pos2, Vector3 scale)
 LARGE_INTEGER LastCounter; 
 
 
+
+void UpdateGame() {
+//Check Stuff
+		ball.position += ballVelocity *  5.0f * DeltaTime;
+
+		//Check Wall Boundaries
+		if(ball.position.y < -5.5){
+			ballVelocity.y = 1;
+		}
+
+		if(ball.position.x > 7 ){
+			ballVelocity.x = -1;
+		}
+
+		if(ball.position.x < -7 ){
+			ballVelocity.x = 1;
+		}
+
+		if(ball.position.y > 5 ){
+			ballVelocity.y = -1;
+		}
+
+		for (int i = 0; i < BRICK_COLS; ++i)
+	   {
+		for (int y = 0; y < BRICK_ROWS; ++y)
+		{
+			if(!bricks[y][i].drawingEnabled) continue; 
+
+			Vector3 brickPos = bricks[y][i].position;
+			float scaleX = bricks[y][i].scale.x /2.0f;
+			float scaleY = bricks[y][i].scale.y /2.0f;
+			
+			if( InRange(ball.position.y, brickPos.y-scaleY, brickPos.y+scaleY))
+			{
+				if( InRange(ball.position.x, brickPos.x-scaleX, brickPos.x+scaleX ) )
+				{
+					bricks[y][i].drawingEnabled = false;
+					ballVelocity.y = -ballVelocity.y;
+				}
+			}
+
+		}
+	}
+
+		//Check Paddlef
+		if(InArea(ball.position, Paddle.position, Paddle.scale))
+		{
+			float dist = Magnitude( ball.position-Paddle.position);
+			ballVelocity.y = 1;
+		}
+}
+
 int CALLBACK WinMain(
     HINSTANCE Instance,
     HINSTANCE PrevInstance,
@@ -982,53 +1034,7 @@ int CALLBACK WinMain(
 			DispatchMessage( &msg); 
 		}
 
-		//Check Stuff
-		ball.position += ballVelocity *  5.0f * DeltaTime;
-
-		//Check Wall Boundaries
-		if(ball.position.y < -5.5){
-			ballVelocity.y = 1;
-		}
-
-		if(ball.position.x > 7 ){
-			ballVelocity.x = -1;
-		}
-
-		if(ball.position.x < -7 ){
-			ballVelocity.x = 1;
-		}
-
-		if(ball.position.y > 5 ){
-			ballVelocity.y = -1;
-		}
-
-		for (int i = 0; i < BRICK_COLS; ++i)
-	   {
-		for (int y = 0; y < BRICK_ROWS; ++y)
-		{
-			if(!bricks[y][i].drawingEnabled) continue; 
-
-			Vector3 brickPos = bricks[y][i].position;
-			float scaleX = bricks[y][i].scale.x /2.0f;
-			float scaleY = bricks[y][i].scale.y /2.0f;
-			
-			if( InRange(ball.position.y, brickPos.y-scaleY, brickPos.y+scaleY))
-			{
-				if( InRange(ball.position.x, brickPos.x-scaleX, brickPos.x+scaleX ) )
-				{
-					bricks[y][i].drawingEnabled = false;
-					ballVelocity.y = -ballVelocity.y;
-				}
-			}
-
-		}
-	}
-
-		//Check Paddlef
-		if(InArea(ball.position, Paddle.position, Paddle.scale)){
-			ballVelocity.y = 1;
-		}
-
+		UpdateGame(); 
 
 		HDC DeviceContext = GetDC(WindowHandle);
 		glViewport(0,0, WindowWidth, WindowHeight);
