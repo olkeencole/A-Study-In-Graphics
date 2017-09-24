@@ -1044,6 +1044,9 @@ int CALLBACK WinMain(
 		RenderOpenGLContext(Shader);
 		SwapBuffers(DeviceContext);
 
+
+
+		//Process Time
 		LARGE_INTEGER EndCounter; 
 		QueryPerformanceCounter(&EndCounter);
 		long TimeElapsedInt = EndCounter.QuadPart - LastCounter.QuadPart;
