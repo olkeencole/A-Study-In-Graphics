@@ -22,6 +22,7 @@ $Notice:
 #include <iostream>
 #include <stdio.h>
 #include <Windows.h>
+#include <Windowsx.h>
 #include "OpenGL.h"
 #include "Math.h"
 
@@ -161,6 +162,8 @@ glm::vec3 Convert(Vector3 v){
  	glBindVertexArray(0);
  }
 
+
+//Mouse and keyboard new input system
 struct game_button{
 	bool up; 
 	bool down; 
@@ -300,34 +303,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_KEYDOWN:
 		{
-			if(wParam == VK_ESCAPE) {
-				PostQuitMessage(0);
-			}
-
-			if(wParam == VK_RIGHT)
-			{
-				//modelPosition.x += .2f;
-				//camera.position += GetRight() * .2f;
-				yaw += .6f;
-
-			}
-			if(wParam == VK_LEFT)
-			{
-				// modelPosition.x -= .2f;
-			    //camera.position -= GetRight() * .2f;
-			    yaw -= .6f;
-
-			}
-			if(wParam == VK_DOWN) {
-				// modelPosition.y  -= .2f;
-				 pitch += .5f;
-				//camera.position -= camera.forward * .2f;
-			}
-			if(wParam == VK_UP) {
-				// modelPosition.y += .2f;
-				 pitch -= .5f;
-				// camera.position +=  camera.forward;//* .2f;
-			}//
+			
 		}break;
 		return 0;
 	}
@@ -374,10 +350,17 @@ int CALLBACK WinMain(
 	PerformanceFrequency = PerformanceFrequencyResult.QuadPart;
 	
 	//MSG msg = {}; 
+	float lastMouseX   = 0, lastMouseY = 0;
+	float ignoreDeltaX = 0, ignoreDeltaY = 0;
+	SetCapture(WindowHandle);
 	Running = true;
 	while(Running ) 
 	{
 		MSG msg; 
+
+			//reset input
+		mouseYDelta = 0;
+		mouseXDelta = 0;
 		//GetMessage( &msg, NULL, 0, 0))  
 		if(PeekMessage(&msg, 0,0, 0, PM_REMOVE )) { 
 
@@ -385,6 +368,60 @@ int CALLBACK WinMain(
 			{
 				Running = false;
 			}
+
+			if(msg.message == WM_MOUSEMOVE) {
+
+				float xPos = (float)GET_X_LPARAM(msg.lParam); 
+				float yPos = (float)GET_Y_LPARAM(msg.lParam); 
+
+				float centerY = ((float)WindowHeight/2.0f); 
+				float centerX = ((float)WindowWidth/2.0f); 
+
+				//xPos -= ignoreDeltaX; 
+				//yPos -= ignoreDeltaY; 
+				mouseXDelta = (xPos -lastMouseX);//*10.0f; 
+				mouseYDelta = (yPos -lastMouseY);//*10.0f; 
+
+				lastMouseX = xPos;
+				lastMouseY = yPos;
+
+
+				ignoreDeltaX = ((float)WindowWidth/2.0f) - xPos; 
+				ignoreDeltaY = ((float)WindowHeight/2.0f) - yPos;
+
+				//SetCursorPos(centerX, centerY);
+			}
+
+			long wParam = (long) msg.wParam;
+
+			if(wParam == VK_ESCAPE) {
+				PostQuitMessage(0);
+			}
+
+			if(wParam == VK_RIGHT)
+			{
+				//modelPosition.x += .2f;
+				//camera.position += GetRight() * .2f;
+				yaw += .6f;
+
+			}
+			if(wParam == VK_LEFT)
+			{
+				// modelPosition.x -= .2f;
+			    //camera.position -= GetRight() * .2f;
+			    yaw -= .6f;
+
+			}
+			if(wParam == VK_DOWN) {
+				// modelPosition.y  -= .2f;
+				 pitch += .5f;
+				//camera.position -= camera.forward * .2f;
+			}
+			if(wParam == VK_UP) {
+				// modelPosition.y += .2f;
+				 pitch -= .5f;
+				// camera.position +=  camera.forward;//* .2f;
+			}//
 			TranslateMessage(&msg); 
 			DispatchMessage( &msg); 
 		}
@@ -393,6 +430,9 @@ int CALLBACK WinMain(
 		glViewport(0,0, WindowWidth, WindowHeight);
 		glClearColor(0.0f, .0f, .0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		yaw   += mouseXDelta * DeltaTime * 10;
+		pitch += mouseYDelta * DeltaTime * 10;
 
     ProcessPitch();
 	ProcessYaw();
@@ -408,8 +448,12 @@ int CALLBACK WinMain(
 		lastCount = currentCount;
 
 		DeltaTime = (float) timeElapsed /(float) PerformanceFrequency;
+		//SetCursorPos( (float)WindowWidth/2.0f, (float)WindowHeight/2.0f);
+
+	
+
 	}
 
-
+	ReleaseCapture();
 	return 0;
 }
