@@ -57,6 +57,9 @@ float yaw = 0;
 
 float zRotation = 0;
 
+float mouseXDelta = 0; 
+float mouseYDelta = 0;
+
  Vector3 mPositions[] = {
   Vector3( 0.0f,  0.0f,  0.0f), 
   Vector3( 2.0f,  5.0f, -15.0f), 
@@ -103,8 +106,8 @@ void ProcessPitch() {
 		
 }
 void ProcessYaw() {
-		//camera.forward.x *= cos(DEG2RAD * yaw);
-		//camera.forward.z *= sin(DEG2RAD * yaw);
+		camera.forward.x *= cos(DEG2RAD * yaw);
+		camera.forward.z *= sin(DEG2RAD * yaw);
 		//Normalize(camera.forward);
 	}
 
@@ -112,6 +115,7 @@ glm::vec3 Convert(Vector3 v){
 
 	return glm::vec3(v.x, v.y, v.z);
 }
+
  //Draw Function
  void RenderOpenGLContext(GLuint shader)
  {
@@ -157,6 +161,14 @@ glm::vec3 Convert(Vector3 v){
  	glBindVertexArray(0);
  }
 
+struct game_button{
+	bool up; 
+	bool down; 
+}; 
+
+bool GetKeyDown(int keycode){
+		return false;
+}
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -360,7 +372,6 @@ int CALLBACK WinMain(
 	QueryPerformanceCounter(&lastCount); 
 	QueryPerformanceFrequency(&PerformanceFrequencyResult);
 	PerformanceFrequency = PerformanceFrequencyResult.QuadPart;
-
 	
 	//MSG msg = {}; 
 	Running = true;

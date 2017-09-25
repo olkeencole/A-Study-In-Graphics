@@ -128,7 +128,7 @@ struct Vector3
 	Vector3 Cross(Vector3 v, Vector3 rhs) {
 
 		Vector3 v1 = v; //Normalize(v);
-		Vector3 v2 = rhs; //Normalize(rhs);
+		Vector3 v2 = rhs; //Normalizrhs);
 		Vector3 result = Vector3();
 
 		result.x = v1.y * v2.z - v1.z * v2.y;
@@ -320,18 +320,37 @@ void PrintVector( Vector3 v) {
 
 Matrix4 LookAt(Vector3 pos, Vector3 target, Vector3 up) {
 
-	Vector3 facing  = Normalize( target - pos);  // why not center eye?	
-	Vector3 right   = Normalize( Cross( facing,   up));    // does order matter?
+	Vector3 facing  = Normalize( pos - target);  // why not center eye?	
+	Vector3 right   = Normalize( Cross(up, facing));    // does order matter?
 	Vector3 localUp = Normalize( Cross( right, facing)); 
 
 	Matrix4 result = Matrix4();
 
-	result.Set(    right.x,    localUp.x,  -facing.x, 0, 
-			       right.y,    localUp.y,  -facing.y, 0,
-			       right.z,    localUp.z,  -facing.z, 0,
-	      -Dot(right, pos),    -Dot(localUp, pos),    Dot(facing, pos),  1.0f );
+	result.Set(    right.x,    localUp.x,  facing.x, 0, 
+			       right.y,    localUp.y,  facing.y, 0,
+			       right.z,    localUp.z,  facing.z, 0,
+	      -Dot(right, pos),    -Dot(localUp, pos),    -Dot(facing, pos),  1.0f );
 
 	char buffer[256];
 	wsprintf(buffer, "LocalUp: %d %d %d - UP %d %d %d", localUp.x, localUp.y, localUp.z, up.x, up.y, up.z );
 	return result;
 }
+
+
+// Matrix4 LookAt(Vector3 pos, Vector3 target, Vector3 up) {
+
+// 	Vector3 facing  = Normalize( target - pos);  // why not center eye?	
+// 	Vector3 right   = Normalize( Cross( facing,   up));    // does order matter?
+// 	Vector3 localUp = Normalize( Cross( right, facing)); 
+
+// 	Matrix4 result = Matrix4();
+
+// 	result.Set(    right.x,    localUp.x,  -facing.x, 0, 
+// 			       right.y,    localUp.y,  -facing.y, 0,
+// 			       right.z,    localUp.z,  -facing.z, 0,
+// 	      -Dot(right, pos),    -Dot(localUp, pos),    Dot(facing, pos),  1.0f );
+
+// 	char buffer[256];
+// 	wsprintf(buffer, "LocalUp: %d %d %d - UP %d %d %d", localUp.x, localUp.y, localUp.z, up.x, up.y, up.z );
+// 	return result;
+// }
