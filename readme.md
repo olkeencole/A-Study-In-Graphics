@@ -1,45 +1,37 @@
 A Graphic Study
 
 
-After many years of an irrational (or perhaps rational) hesitation towards learning modern graphics API, 
-I took the plunge to understand OpenGL. Parts were better than expect and others worse. Nevertheless, success in the endeavour showed me that with enough patience, grit and williness to spending a few hours every evening learning arcane symbols and math, I could understand whatever I wanted. 
+After many years of an irrational (or perhaps rational) hesitation towards learning modern graphics API, I've decided to learn OpenGL, and it was pretty fun (mostly). In the effort to continue on the momentum that I've built up, I've decided to do a quick study of the major APIs and create the same basic demos across them all. My goal is that this should cement for me the foundational principles of 3D graphics and GPU processing while also giving me a basic familiarity with the common graphics APIs in use. 
 
-Perhaps the most painful part of the experience was simply to piece together the information I desired from a variety of sources. Graphics API tutorials are plentiful, but most sacrifice thoroughness with the need for ease and accessibiity (which I fault no one for!). Indeed you can never go too far without adding another library to "ease the pain", but I was determined to string together everything with absolute minimum dependency. 
+Graphics tutorials are plentiful, but they typically rely on the use of external libraries adding dependencies (and steps!) to a project. I wanted to see how much I could do from the ground up, and so whenever possible I have tried to avoid adding libraries. We will see how long this will continue.  
 
-But now here you will be able find simple examples of the popular graphics APIs in order to gain a decent understanding of how to get started with graphics programming. 
-
-This will likely be an ongoing project for sometime until I've made a journey through the selected APIs (or until new ones arise).  
-
-The goal currently as it stands is to create 5 samples for each of the popular APIs listed below:
+This will be an ongoing project. The current goal is to create 5 demos for each of the popular APIs listed below:
 
 1 - OpenGL Core
-2 - Software Rendering 
-  - where all the mysteries of graphics will be made manifest
+2 - Software Rendering - doing everything from scratch
 3 - Vulcan
 4 - DirectX 11
 5 - DirectX 12 
 6 - Metal
 
-The five samples are intended to be as basic as you can get, but they contain little to no dependencies. No dependencies to any Windows or Math libraries here. See all the necessary calls to Windows in order to get the hardware accelerated pipeline setup. 
+The 5 demos will be there same for each in order to have something of a control variable between the studies. I hope this will be conducive for comparing differences between the APIs.
 
-
-Demo Samples
-Each API folder contains 5 demos for the purposes of comparing the APIs against each other
+The demos 
 
 1. Color Triangle
- - The Hello World of graphics programming. This demo has the benefits of showing all the necessary boilerplate in order to coax the OS into using the hardware accelerated API as well as how to send triangle data to the GPU. 
+ - The Hello World of graphics programming. This demo has the benefits of showing all the necessary boilerplate in order to coax the OS into using the hardware accelerated API as well as how to send vertex data to the GPU. 
 
 2. Box Demo
-- The basic functionality in which to render a 3D perspective scene with simple boxes. 
+- Adding to the last demo the ability to render perspective. 
 
 3. OBJ Model Loading
-- Using a custom but portable OBJ loader, pipe the data to the graphics card
+- Loading a custom model with lighting and textures. 
 
 4. Simple Interactive Game - Breakout
  - No texture loading. Just simple cubes, and simple physics, but all used to make a simple 3D game. 
 
-5. Simple FPS walkthrough with no interaction? 
-    Skybox? OBJ loading? Definitely no collisions 
+5. Simple FPS walkthrough? 
+    - Mouse and Keyboard interaction with lighting and skybox. 
 
 
 BUILDING
