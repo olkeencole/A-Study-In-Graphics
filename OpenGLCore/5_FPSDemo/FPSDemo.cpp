@@ -15,7 +15,7 @@ $Notice:
   1: Initialize OpenGL from Windows
   2: Store a Cube as Vertex Information in GL Buffers
   3: Build the Necessary Matrix Information for the Shaders
-  4: Render a Series of Boxes in Perspectival Rendering
+  4: ....
 
 */
 
@@ -26,19 +26,20 @@ $Notice:
 #include "OpenGL.h"
 #include "Math.h"
 
-#define GLM_FORCE_RADIANS
-#include "glm\glm.hpp"
-#include "glm\gtx\random.hpp"
-#include "glm\gtc\random.hpp"
-#include "glm\gtc\matrix_transform.hpp"
-#include "glm\gtc\type_ptr.hpp"
 using namespace std;
+
+
 // UTILITY CONSTANTS
-#define Length(value) ( sizeof(value) / sizeof(value[0] ) ) //Length of an Array
+#define ArrayLength(value) ( sizeof(value) / sizeof(value[0] ) ) //ArrayLength of an Array
+
 
 static int WindowWidth  = 800; 
 static int WindowHeight = 600; 
 
+
+
+// Simple Camera Structure
+// Needs to be a class now
 struct Camera {
 	Vector3 position = Vector3(0, 0,   -5.0f); 
 	Vector3 forward  = Vector3(0,  0, -1.0f); // what we are looking at// direction facing // or could think of it as rotation I suppose. 
@@ -49,9 +50,6 @@ struct Camera {
 };
 
 Camera camera; 
-Vector3 GetRight(){
-	return Cross(camera.forward, Vector3(0, 1,  0) );
-}
 
 float pitch = 0; 
 float yaw = 0; 
@@ -60,6 +58,28 @@ float zRotation = 0;
 
 float mouseXDelta = 0; 
 float mouseYDelta = 0;
+
+void ProcessPitch() {
+        camera.forward.x = cos(DEG2RAD * pitch);
+        camera.forward.y = sin(DEG2RAD * pitch);
+		camera.forward.z = cos(DEG2RAD * pitch);
+		Normalize(camera.forward);
+		
+}
+void ProcessYaw() {
+		camera.forward.x *= cos(DEG2RAD * yaw);
+		camera.forward.z *= sin(DEG2RAD * yaw);
+		//Normalize(camera.forward);
+	}
+
+	Vector3 GetRight(){
+	return Cross(camera.forward, Vector3(0, 1,  0) );
+}
+
+
+
+
+//Positions to place the boxes
 
  Vector3 mPositions[] = {
   Vector3( 0.0f,  0.0f,  0.0f), 
@@ -96,48 +116,25 @@ float mouseYDelta = 0;
   Vector3( 6.1f,  -1.43f, -7.5f) ,
   Vector3(-7.2f,  -1.2f, -7.5f)
  };
+
+
  Vector3 modelPosition = Vector3(.1f, 0, 0);
 
-
-void ProcessPitch() {
-        camera.forward.x = cos(DEG2RAD * pitch);
-        camera.forward.y = sin(DEG2RAD * pitch);
-		camera.forward.z = cos(DEG2RAD * pitch);
-		Normalize(camera.forward);
-		
-}
-void ProcessYaw() {
-		camera.forward.x *= cos(DEG2RAD * yaw);
-		camera.forward.z *= sin(DEG2RAD * yaw);
-		//Normalize(camera.forward);
-	}
-
-glm::vec3 Convert(Vector3 v){
-
-	return glm::vec3(v.x, v.y, v.z);
-}
-
- //Draw Function
+ //RENDER AND DRAW EVERYTHING
  void RenderOpenGLContext(GLuint shader)
  {
  	//PREPARE CAMERA AND MATRICES
  	Matrix4 model = Matrix4(); //Constructor sets to Identity
-
  	Matrix4 view = Matrix4();
- 	view.identity();
- 	view = LookAt(camera.position,  camera.position  + camera.forward, Vector3(0, 1.0f, 0.0f) );
-
- 	glm::mat4 viewMatrix; 
- 	viewMatrix = glm::lookAt( Convert(camera.position),  Convert(camera.position  + camera.forward), Convert( Vector3(0, 1.0f, 0.0f)) );
-
  	Matrix4 proj = Matrix4();
+
+ 	view = LookAt(camera.position,  camera.position + camera.forward, Vector3(0, 1.0f, 0.0f) );
  	proj = Perspective( (camera.fieldOfView * DEG2RAD),  ( (float) WindowWidth / (float)WindowHeight ), camera.nearClip, camera.farClip); 
 
  	glUseProgram(shader); 
 
  	GLuint shader_model_id = glGetUniformLocation(shader, "model"); 
  	glUniformMatrix4fv(shader_model_id, 1, GL_FALSE,  &model.m[0]);
-
 
  	GLuint shader_view_id = glGetUniformLocation(shader, "view"); 
  	glUniformMatrix4fv(shader_view_id, 1, GL_FALSE, &view.m[0] );
@@ -147,7 +144,7 @@ glm::vec3 Convert(Vector3 v){
 
  	glBindVertexArray(VAO);
 
- 	for (int i = 0; i < Length(mPositions); ++i)
+ 	for (int i = 0; i < ArrayLength(mPositions); ++i)
  	{
  		 model.identity();
  		 model = model.RotateZAxis( modelPosition.x * 30.0f);
@@ -162,7 +159,7 @@ glm::vec3 Convert(Vector3 v){
  	glBindVertexArray(0);
  }
 
-
+ //TODO(keenan): work on a simple but better input system
 //Mouse and keyboard new input system
 struct game_button{
 	bool up; 
@@ -179,6 +176,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		case WM_CREATE: 
 		{
+			//Set Cursor to the middle of the screen
+			POINT cPoint; 
+			//RECT rcClient; 
+			//GetClientRect(hwnd, &rcClient);
+			cPoint.x = WindowWidth/2;
+			cPoint.y = WindowHeight/2;
+			ClientToScreen(hwnd, &cPoint);
+			SetCursorPos(cPoint.x, cPoint.y);//WindowWidth/2, WindowHeight/2);
+
+
 			PIXELFORMATDESCRIPTOR pfd =
 			{
 				sizeof(PIXELFORMATDESCRIPTOR),
@@ -206,6 +213,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 			HGLRC renderContext = wglCreateContext(DeviceContext ); // dummy context
 			
+
+			// Get OpenGL Function Pointers
+			//
 			if( wglMakeCurrent( DeviceContext, renderContext) )
 			{
 				cout << "Making WGL Current and attempting to fetch functions" << endl;
@@ -266,14 +276,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					else
 					{
 						OutputDebugString( "Failed Creating Modern Context\n" );
-						//MessageBoxA(0 , (char*) ("Failed Creating Modern Conttext"), "OPENGL_VERSION", 0);
 
 					}
 				}
 				else 
 				{
 					cout << "Create Context Attrib Failed" << endl;
-					// MessageBoxA(0 , (char*) ("Failed Context Attrib"), "OPENGL_VERSION", 0);
 
 				}
 			}
@@ -298,7 +306,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			RenderOpenGLContext(Shader);
-			//RenderOldOpenGL();
 			SwapBuffers(DeviceContext); 
 		}
 		case WM_KEYDOWN:
@@ -378,18 +385,26 @@ int CALLBACK WinMain(
 				float centerX = ((float)WindowWidth/2.0f); 
 
 				//xPos -= ignoreDeltaX; 
-				//yPos -= ignoreDeltaY; 
-				mouseXDelta = (xPos -lastMouseX);//*10.0f; 
-				mouseYDelta = (yPos -lastMouseY);//*10.0f; 
+				//yPos -= ignoreDeltaY;
+
+				mouseXDelta = (xPos - (lastMouseX ));//*10.0f; 
+				mouseYDelta = (yPos - (lastMouseY ));//*10.0f; 
 
 				lastMouseX = xPos;
 				lastMouseY = yPos;
 
-
-				ignoreDeltaX = ((float)WindowWidth/2.0f) - xPos; 
-				ignoreDeltaY = ((float)WindowHeight/2.0f) - yPos;
-
 				//SetCursorPos(centerX, centerY);
+
+				POINT cPoint; 
+			//RECT rcClient; 
+			//GetClientRect(hwnd, &rcClient);
+			   cPoint.x = WindowWidth/2;
+			   cPoint.y = WindowHeight/2;
+			   ClientToScreen(WindowHandle, &cPoint);
+			   //SetCursorPos(cPoint.x, cPoint.y);//WindowWidth/2, WindowHeight/2);
+
+			   ignoreDeltaX = cPoint.x - xPos; 
+			   ignoreDeltaY = cPoint.y - yPos;
 			}
 
 			long wParam = (long) msg.wParam;
@@ -398,48 +413,49 @@ int CALLBACK WinMain(
 				PostQuitMessage(0);
 			}
 
-			if(wParam == VK_RIGHT)
+			if(wParam == VK_RIGHT || wParam =='D')
 			{
 				//modelPosition.x += .2f;
-				//camera.position += GetRight() * .2f;
-				yaw += .6f;
+				camera.position += GetRight() * DeltaTime * 3.0f;
+				//yaw += .6f;
 
 			}
-			if(wParam == VK_LEFT)
+			if(wParam == VK_LEFT || wParam =='A')
 			{
 				// modelPosition.x -= .2f;
-			    //camera.position -= GetRight() * .2f;
-			    yaw -= .6f;
+			    camera.position -= GetRight() * DeltaTime * 3.0f;
+			    //yaw -= .6f;
 
 			}
-			if(wParam == VK_DOWN) {
+			if(wParam == VK_DOWN || wParam =='S') {
 				// modelPosition.y  -= .2f;
-				 pitch += .5f;
-				//camera.position -= camera.forward * .2f;
+				 //pitch += .5f;
+				camera.position -= camera.forward * DeltaTime * 3.0f ;
 			}
-			if(wParam == VK_UP) {
+			if(wParam == VK_UP || wParam =='W') {
 				// modelPosition.y += .2f;
-				 pitch -= .5f;
-				// camera.position +=  camera.forward;//* .2f;
+				// pitch -= .5f;
+				 camera.position +=  camera.forward * DeltaTime * 3.0f;//* .2f;
 			}//
 			TranslateMessage(&msg); 
 			DispatchMessage( &msg); 
 		}
 
 		HDC DeviceContext = GetDC(WindowHandle);
+
+		//Clear Screen to a Dark Grey
 		glViewport(0,0, WindowWidth, WindowHeight);
-		glClearColor(0.0f, .0f, .0f, 0.0f);
+		glClearColor(0.3f, .3f, .3f, 0.3f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		yaw   += mouseXDelta * DeltaTime * 10;
 		pitch += mouseYDelta * DeltaTime * 10;
 
-    ProcessPitch();
-	ProcessYaw();
+        ProcessPitch();
+	    ProcessYaw();
 
 		RenderOpenGLContext(Shader);
 		SwapBuffers(DeviceContext);
-
 
 
 		LARGE_INTEGER currentCount; 
@@ -449,8 +465,6 @@ int CALLBACK WinMain(
 
 		DeltaTime = (float) timeElapsed /(float) PerformanceFrequency;
 		//SetCursorPos( (float)WindowWidth/2.0f, (float)WindowHeight/2.0f);
-
-	
 
 	}
 

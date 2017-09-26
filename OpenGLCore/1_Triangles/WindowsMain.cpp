@@ -12,7 +12,6 @@ $Notice:
    - As simple as a script can be initializing OpenGLCore from the 
      Windows API and displaying a polygon
 
-
 */ 
 
 
@@ -22,7 +21,9 @@ $Notice:
 
 using namespace std;
 
-//Triangle Data with Vertex Color
+
+// Triangle Data with Vertex Color
+//
 float verts[] = { 
 	-1.0f,  -1.0f,  0,  1, 0, 0,
 	 .95f,     -1,  0,  0, 1, 0,
@@ -30,9 +31,9 @@ float verts[] = {
 }; 
 
 
-/*
-  Shaders
-*/
+
+// Shaders
+// Just displays pos in NDC and colors
 const char* vertexShader = 
 	"#version 330 core\n"
 	"layout (location = 0) in vec3 verts;\n" 
@@ -51,21 +52,25 @@ const char* fragmentShader =
 	"}\n\0";
 
 
+
 //WGL CONSTANTS FLAGS
- #define WGL_CONTEXT_MAJOR_VERSION_ARB           	0x2091
- #define WGL_CONTEXT_MINOR_VERSION_ARB           	0x2092
- #define WGL_CONTEXT_LAYER_PLANE_ARB             	0x2093
- #define WGL_CONTEXT_FLAGS_ARB                   	0x2094
- #define WGL_CONTEXT_PROFILE_MASK_ARB            	0x9126
- #define WGL_CONTEXT_DEBUG_BIT_ARB               	0x0001
- #define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB     0x0002
- #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB           0x00000001
- #define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB  0x00000002
- #define ERROR_INVALID_VERSION_ARB                  0x2095
- #define ERROR_INVALID_PROFILE_ARB                  0x2096
+//
+#define WGL_CONTEXT_MAJOR_VERSION_ARB           	0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB           	0x2092
+#define WGL_CONTEXT_LAYER_PLANE_ARB             	0x2093
+#define WGL_CONTEXT_FLAGS_ARB                   	0x2094
+#define WGL_CONTEXT_PROFILE_MASK_ARB            	0x9126
+#define WGL_CONTEXT_DEBUG_BIT_ARB               	0x0001
+#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB     0x0002
+#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB           0x00000001
+#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB  0x00000002
+#define ERROR_INVALID_VERSION_ARB                  0x2095
+#define ERROR_INVALID_PROFILE_ARB                  0x2096
+
 
 
 //OPENGL CONSTANT FLAGS
+	//
 #define GL_ARRAY_BUFFER                   0x8892
 #define GL_STATIC_DRAW                    0x88E4
 
@@ -75,12 +80,10 @@ const char* fragmentShader =
 #define GL_COMPILE_STATUS                 0x8B81
 #define GL_LINK_STATUS                    0x8B82
 
-/// GLOBALS
-static HGLRC GlobalRenderContext; 
-static int WindowWidth  = 800; 
-static int WindowHeight = 600; 
 
-static GLuint VAO,VBO, Shader; 
+ 
+// OPENGL FUNCTION POINTER TYPE DEFINITIONS
+//	
 typedef ptrdiff_t GLsizeiptr;
 typedef char GLchar;
 
@@ -107,9 +110,11 @@ typedef void  WINAPI gl_GetProgramiv      (GLuint program, GLenum pname, GLint *
 typedef void  WINAPI gl_GetProgramInfoLog (GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
 typedef void  WINAPI gl_GetShaderiv       (GLuint shader, GLenum pname, GLint *params);
 typedef void  WINAPI gl_GetShaderInfoLog  (GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
-// // void  WINAPI gl_GetShaderSource   (GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *source);
-// GLint WINAPI gl_GetUniformLocation(GLuint program, const GLchar *name);
 
+
+
+// FUNCTION POINTER DECLARATIONS
+//
 gl_GenVertexArrays  		*glGenVertexArrays;
 gl_BindVertexArray  		*glBindVertexArray; 
 gl_GenBuffers       		*glGenBuffers; 
@@ -133,6 +138,17 @@ gl_GetShaderiv        *glGetShaderiv       ;
 gl_GetShaderInfoLog   *glGetShaderInfoLog  ;
 
 
+
+/// GLOBALS
+//
+static HGLRC GlobalRenderContext; 
+static int WindowWidth  = 800; 
+static int WindowHeight = 600; 
+static GLuint VAO,VBO, Shader; 
+
+
+// Store Vertex Data In Buffer In GPU
+//
 void InitOpenGL()
 {
 	glGenVertexArrays(1, &VAO);
@@ -153,6 +169,10 @@ void InitOpenGL()
 
  } 
 
+
+
+// Compile Shader and Store in GPU Buffer
+//
  void InitShader()
  {
  	//Debuging
@@ -193,6 +213,9 @@ void InitOpenGL()
  	Shader = shader;
  }
 
+
+// Draw with OpenGLCore
+//
  void RenderOpenGLContext(GLuint shader)
  {
  	glUseProgram(shader); 
@@ -203,6 +226,9 @@ void InitOpenGL()
  	glBindVertexArray(0);
  }
 
+
+// Draw With Old OpenGL 1.1
+// 
  void RenderOldOpenGL()
  {
 		//RenderOpenGLContext(Shader);
@@ -227,12 +253,15 @@ void InitOpenGL()
  }
 
 
+// Windows Message Callback
+// 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch( uMsg)
 	{
 		case WM_CREATE: 
 		{
+			//Describe the type of Pixel to Display
 			PIXELFORMATDESCRIPTOR pfd =
 			{
 				sizeof(PIXELFORMATDESCRIPTOR),
@@ -254,12 +283,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			};
 
 			HDC DeviceContext = GetDC(hwnd);
+
 			int letWindowChoosePixelFormat; 
 			letWindowChoosePixelFormat = ChoosePixelFormat(DeviceContext, &pfd ); // DC and PixelFormatDescriptor 
 			SetPixelFormat(DeviceContext,  letWindowChoosePixelFormat, &pfd); //is pfd correct? 
-
 			HGLRC renderContext = wglCreateContext(DeviceContext ); // dummy context
 			
+			// Did we get the initial graphics context? 
+			// Then Now we can create the newer context
+			// And Load our function pointers with addresses
 			if( wglMakeCurrent( DeviceContext, renderContext) )
 			{
 				cout << "Making WGL Current and attempting to fetch functions" << endl;
@@ -290,6 +322,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				glGetProgramInfoLog  = (gl_GetProgramInfoLog *) wglGetProcAddress("glGetProgramInfoLog"); 
 				glGetShaderiv        = (gl_GetShaderiv       *) wglGetProcAddress("glGetShaderiv"); 
 				glGetShaderInfoLog   = (gl_GetShaderInfoLog  *) wglGetProcAddress("glGetShaderInfoLog"); 
+				
 				// wglGetProcAddrss("wglCreteContextAttribARB");
 				if(wglCreateContextAttribARB ) {
 						OutputDebugString( "Found Contrext Attrib Function\n" );
