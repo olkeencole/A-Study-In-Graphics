@@ -174,6 +174,7 @@ float Cube_Color[] = {
 };
 
 
+//Send the vertices to the GPU and say how the data is laid out
 void InitializeOpenGLBuffers()
 {
 	glEnable(GL_DEPTH_TEST);  
@@ -195,6 +196,7 @@ void InitializeOpenGLBuffers()
 	glBindVertexArray(0);
 
  } 
+
 
  void InitShader()
  {

@@ -7,12 +7,12 @@ Graphics tutorials are plentiful, but they typically rely on the use of external
 
 This will be an ongoing project. The current goal is to create 5 demos for each of the popular APIs listed below:
 
-1 - OpenGL Core
-2 - Software Rendering - doing everything from scratch
-3 - Vulcan
-4 - DirectX 11
-5 - DirectX 12 
-6 - Metal
+1. - OpenGL Core
+2. - Software Rendering - doing everything from scratch
+3. - Vulcan
+4. - DirectX 11
+5. - DirectX 12 
+6. - Metal
 
 The 5 demos will be there same for each in order to have something of a control variable between the studies. I hope this will be conducive for comparing differences between the APIs.
 
