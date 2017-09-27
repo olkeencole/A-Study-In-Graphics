@@ -164,7 +164,11 @@ void ProcessYaw() {
 struct game_button{
 	bool up; 
 	bool down; 
+	bool wasDown;
 }; 
+
+game_button moveForward; 
+game_button moveBackforward;
 
 bool GetKeyDown(int keycode){
 		return false;
@@ -184,7 +188,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			cPoint.y = WindowHeight/2;
 			ClientToScreen(hwnd, &cPoint);
 			SetCursorPos(cPoint.x, cPoint.y);//WindowWidth/2, WindowHeight/2);
-
+			ShowCursor(false);
 
 			PIXELFORMATDESCRIPTOR pfd =
 			{
@@ -294,6 +298,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 		case WM_DESTROY:
+			ShowCursor(true);
+
 			PostQuitMessage(0);
 			return 0;
 
@@ -321,6 +327,90 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 bool Running = false;
 
 float DeltaTime;
+
+void HandleWindowsMessages(HWND &WindowHandle, MSG &msg) {
+	if(PeekMessage(&msg, 0,0, 0, PM_REMOVE )) { 
+
+			if( msg.message == WM_QUIT)
+			{
+				Running = false;
+			}
+
+			if(msg.message == WM_MOUSEMOVE) {
+
+				float mouseSensitivity = 10.0f;
+
+				//Center of Window
+				POINT cPoint; 
+			    cPoint.x = (float) WindowWidth/2.0f;
+			    cPoint.y = (float) WindowHeight/2.0f;
+			    ClientToScreen(WindowHandle, &cPoint);
+
+
+			    //Mouse Pos from Window	
+				float xPos = (float)GET_X_LPARAM(msg.lParam); 
+				float yPos = (float)GET_Y_LPARAM(msg.lParam); 
+				POINT mousePoint;
+				mousePoint.x = xPos;
+				mousePoint.y = yPos;
+			    ClientToScreen(WindowHandle, &mousePoint);
+
+
+			    //Get Movement from Center
+				float movementX = ( cPoint.x - mousePoint.x) ;//(lastMouseX ));//*10.0f; 
+				float movementY = ( cPoint.y - mousePoint.y) ;//(lastMouseY ));//*10.0f; 
+
+				//Massage it and put it in delta
+				mouseXDelta = -movementX / mouseSensitivity;
+				mouseYDelta = -movementY / mouseSensitivity;
+
+				//Set cursor back to center
+			   SetCursorPos(cPoint.x, cPoint.y);//WindowWidth/2, WindowHeight/2);
+			}
+
+			long wParam = (long) msg.wParam;
+
+			if(wParam == VK_ESCAPE) {
+				PostQuitMessage(0);
+			}
+
+
+				moveForward.down = false;
+				moveBackforward.down = false;
+
+			if(wParam == VK_RIGHT || wParam =='D')
+			{
+				//modelPosition.x += .2f;
+				camera.position += GetRight() * DeltaTime * 6.0f;
+				//yaw += .6f;
+
+			}
+			if(wParam == VK_LEFT || wParam =='A')
+			{
+				// modelPosition.x -= .2f;
+
+			    camera.position -= GetRight() * DeltaTime * 6.0f;
+			    //yaw -= .6f;
+
+			}
+			if(wParam == VK_DOWN || wParam =='S') {
+				// modelPosition.y  -= .2f;
+				 //pitch += .5f;
+				//camera.position -= camera.forward * DeltaTime * 6.0f ;
+				moveForward.down = true;
+
+
+			}
+			if(wParam == VK_UP || wParam =='W') {
+				// modelPosition.y += .2f;
+				// pitch -= .5f;
+				 //camera.position +=  camera.forward * DeltaTime * 6.0f;//* .2f;
+				moveBackforward.down = true;
+			}//
+			TranslateMessage(&msg); 
+			DispatchMessage( &msg); 
+		}
+}
 
 
 int CALLBACK WinMain(
@@ -360,6 +450,7 @@ int CALLBACK WinMain(
 	float lastMouseX   = 0, lastMouseY = 0;
 	float ignoreDeltaX = 0, ignoreDeltaY = 0;
 	SetCapture(WindowHandle);
+
 	Running = true;
 	while(Running ) 
 	{
@@ -368,78 +459,10 @@ int CALLBACK WinMain(
 			//reset input
 		mouseYDelta = 0;
 		mouseXDelta = 0;
+
+		HandleWindowsMessages(WindowHandle,  msg);
 		//GetMessage( &msg, NULL, 0, 0))  
-		if(PeekMessage(&msg, 0,0, 0, PM_REMOVE )) { 
-
-			if( msg.message == WM_QUIT)
-			{
-				Running = false;
-			}
-
-			if(msg.message == WM_MOUSEMOVE) {
-
-				float xPos = (float)GET_X_LPARAM(msg.lParam); 
-				float yPos = (float)GET_Y_LPARAM(msg.lParam); 
-
-				float centerY = ((float)WindowHeight/2.0f); 
-				float centerX = ((float)WindowWidth/2.0f); 
-
-				//xPos -= ignoreDeltaX; 
-				//yPos -= ignoreDeltaY;
-
-				mouseXDelta = (xPos - (lastMouseX ));//*10.0f; 
-				mouseYDelta = (yPos - (lastMouseY ));//*10.0f; 
-
-				lastMouseX = xPos;
-				lastMouseY = yPos;
-
-				//SetCursorPos(centerX, centerY);
-
-				POINT cPoint; 
-			//RECT rcClient; 
-			//GetClientRect(hwnd, &rcClient);
-			   cPoint.x = WindowWidth/2;
-			   cPoint.y = WindowHeight/2;
-			   ClientToScreen(WindowHandle, &cPoint);
-			   //SetCursorPos(cPoint.x, cPoint.y);//WindowWidth/2, WindowHeight/2);
-
-			   ignoreDeltaX = cPoint.x - xPos; 
-			   ignoreDeltaY = cPoint.y - yPos;
-			}
-
-			long wParam = (long) msg.wParam;
-
-			if(wParam == VK_ESCAPE) {
-				PostQuitMessage(0);
-			}
-
-			if(wParam == VK_RIGHT || wParam =='D')
-			{
-				//modelPosition.x += .2f;
-				camera.position += GetRight() * DeltaTime * 3.0f;
-				//yaw += .6f;
-
-			}
-			if(wParam == VK_LEFT || wParam =='A')
-			{
-				// modelPosition.x -= .2f;
-			    camera.position -= GetRight() * DeltaTime * 3.0f;
-			    //yaw -= .6f;
-
-			}
-			if(wParam == VK_DOWN || wParam =='S') {
-				// modelPosition.y  -= .2f;
-				 //pitch += .5f;
-				camera.position -= camera.forward * DeltaTime * 3.0f ;
-			}
-			if(wParam == VK_UP || wParam =='W') {
-				// modelPosition.y += .2f;
-				// pitch -= .5f;
-				 camera.position +=  camera.forward * DeltaTime * 3.0f;//* .2f;
-			}//
-			TranslateMessage(&msg); 
-			DispatchMessage( &msg); 
-		}
+		
 
 		HDC DeviceContext = GetDC(WindowHandle);
 
@@ -448,12 +471,22 @@ int CALLBACK WinMain(
 		glClearColor(0.3f, .3f, .3f, 0.3f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		yaw   += mouseXDelta * DeltaTime * 10;
-		pitch += mouseYDelta * DeltaTime * 10;
+
+	
+		yaw   += mouseXDelta * DeltaTime * 20;
+		pitch += mouseYDelta * DeltaTime * 20;
 
         ProcessPitch();
 	    ProcessYaw();
 
+	    if(moveForward.down) {
+			camera.position -= camera.forward * DeltaTime * 10.0f;
+		}
+
+		if(moveBackforward.down) {
+			camera.position += camera.forward * DeltaTime * 10.0f;
+		}
+		
 		RenderOpenGLContext(Shader);
 		SwapBuffers(DeviceContext);
 
