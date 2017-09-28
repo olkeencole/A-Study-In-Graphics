@@ -326,6 +326,21 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 bool Running = false;
 
+bool moveForwardState = false;
+bool moveBackState = false; 
+bool moveRightState = false;
+bool moveLeftState = false;
+
+void ProcessKeyEventPress( bool isDown, bool wasDown, bool *controlState)
+{
+	if(isDown && !wasDown){
+		*controlState = false;
+	}
+	else if(!isDown && wasDown) {
+		*controlState = false;
+	} 
+}
+
 float DeltaTime;
 
 void HandleWindowsMessages(HWND &WindowHandle, MSG &msg) {
@@ -336,6 +351,7 @@ void HandleWindowsMessages(HWND &WindowHandle, MSG &msg) {
 				Running = false;
 			}
 
+			//Process Mouse
 			if(msg.message == WM_MOUSEMOVE) {
 
 				float mouseSensitivity = 10.0f;
@@ -368,12 +384,21 @@ void HandleWindowsMessages(HWND &WindowHandle, MSG &msg) {
 			   SetCursorPos(cPoint.x, cPoint.y);//WindowWidth/2, WindowHeight/2);
 			}
 
-			long wParam = (long) msg.wParam;
+			long wParam = msg.wParam;
+		//	long lParam = msg.lParam;
+
+			/*
+				30 = previously held bit
+				31 = is keydown message when 0
+
+			*/
+
+			bool wasDown = ((msg.lParam  & (1 << 30)) !=  0); 
+			bool isDown  = ((msg.lParam  & (1 << 31))  == 0); 
 
 			if(wParam == VK_ESCAPE) {
 				PostQuitMessage(0);
 			}
-
 
 				moveForward.down = false;
 				moveBackforward.down = false;
@@ -397,7 +422,7 @@ void HandleWindowsMessages(HWND &WindowHandle, MSG &msg) {
 				// modelPosition.y  -= .2f;
 				 //pitch += .5f;
 				//camera.position -= camera.forward * DeltaTime * 6.0f ;
-				moveForward.down = true;
+				ProcessKeyEventPress(isDown, wasDown, &moveBackState);
 
 
 			}
@@ -405,7 +430,7 @@ void HandleWindowsMessages(HWND &WindowHandle, MSG &msg) {
 				// modelPosition.y += .2f;
 				// pitch -= .5f;
 				 //camera.position +=  camera.forward * DeltaTime * 6.0f;//* .2f;
-				moveBackforward.down = true;
+				ProcessKeyEventPress(isDown, wasDown, &moveForwardState);//moveBackforward.down = true;
 			}//
 			TranslateMessage(&msg); 
 			DispatchMessage( &msg); 
@@ -479,11 +504,11 @@ int CALLBACK WinMain(
         ProcessPitch();
 	    ProcessYaw();
 
-	    if(moveForward.down) {
+	    if(moveForwardState == true) {
 			camera.position -= camera.forward * DeltaTime * 10.0f;
 		}
 
-		if(moveBackforward.down) {
+		if(moveBackState == true) {
 			camera.position += camera.forward * DeltaTime * 10.0f;
 		}
 		
