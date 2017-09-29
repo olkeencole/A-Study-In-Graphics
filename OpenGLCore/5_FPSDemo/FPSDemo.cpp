@@ -143,13 +143,15 @@ static bool moveLeftState = false;
 	mousePoint.y = yPos;
     ClientToScreen(WindowHandle, &mousePoint);
 
-
     //Get Movement from Center
-	float movementX = ( cPoint.x - mousePoint.x) ;//(lastMouseX ));//*10.0f; 
-	float movementY = ( cPoint.y - mousePoint.y) ;//(lastMouseY ));//*10.0f; 
+	float movementX = float( cPoint.x - mousePoint.x) ;//(lastMouseX ));//*10.0f; 
+	float movementY = float( cPoint.y - mousePoint.y) ;//(lastMouseY ));//*10.0f; 
 
 	//Massage it and put it in delta
+	if(movementX != 0)
 	mouseXDelta = -movementX / mouseSensitivity;
+
+	if(movementY != 0)
 	mouseYDelta = -movementY / mouseSensitivity;
 
 	//Set cursor back to center
@@ -195,24 +197,11 @@ static bool moveLeftState = false;
  	glBindVertexArray(0);
  }
 
- //TODO(keenan): work on a simple but better input system
-//Mouse and keyboard new input system
-struct game_button{
-	bool up; 
-	bool down; 
-	bool wasDown;
-}; 
 
-game_button moveForward; 
-game_button moveBackforward;
-
-bool GetKeyDown(int keycode){
-		return false;
-}
 void ProcessKeyEventPress( bool isDown, bool wasDown, bool *controlState)
 {
 	if(isDown && !wasDown){
-		*controlState = false;
+		*controlState = true;
 	}
 	else if(!isDown && wasDown) {
 		*controlState = false;
@@ -234,6 +223,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			cPoint.x = WindowWidth/2;
 			cPoint.y = WindowHeight/2;
 			ClientToScreen(hwnd, &cPoint);
+			
+
 			SetCursorPos(cPoint.x, cPoint.y);//WindowWidth/2, WindowHeight/2);
 			ShowCursor(false);
 
@@ -344,76 +335,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			}
 		}
 		break;
-		case WM_DESTROY:
+		case WM_DESTROY:{
 			ShowCursor(true);
 
 			PostQuitMessage(0);
 			return 0;
-
-		case WM_PAINT:
-		{
-			HDC DeviceContext = GetDC(hwnd);
-
-			glViewport(0,0, WindowWidth, WindowHeight);
-			glClearColor(0.0f, .0f, .0f, 0.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			RenderOpenGLContext(Shader);
-			SwapBuffers(DeviceContext); 
 		}
+	
 
-		case WM_MOUSEMOVE: 
-		{
-			ProcessMouseInput(hwnd, wParam, lParam);
-			break;
-		}
-
-		case WM_SYSKEYDOWN:
-		case WM_SYSKEYUP:
-		case WM_KEYDOWN:
-		case WM_KEYUP:
-		{
-			bool wasDown = ((1 << 30) & lParam ) != 0 ? true : false; 
-			bool isDown  = ((1 << 31) & lParam ) == 0 ? true : false; 
-
-		    //long wParam = wParam;
-
-			if(wParam == VK_ESCAPE) {
-				PostQuitMessage(0);
-				Running = false;
-			}
-
-			if(wParam == VK_RIGHT || wParam =='D')
-			{
-				//modelPosition.x += .2f;
-				//camera.position += GetRight() * DeltaTime * 6.0f;
-				//yaw += .6f;
-
-			}else
-			if(wParam == VK_LEFT || wParam =='A')
-			{
-				// modelPosition.x -= .2f;
-
-			  //  camera.position -= GetRight() * DeltaTime * 6.0f;
-			    //yaw -= .6f;
-
-			} else
-			if(wParam == VK_DOWN || wParam =='S') {
-				// modelPosition.y  -= .2f;
-				 //pitch += .5f;
-				//camera.position -= camera.forward * DeltaTime * 6.0f ;
-				ProcessKeyEventPress(isDown, wasDown, &moveBackState);
-
-			}else
-			if(wParam == VK_UP || wParam =='W') {
-				// modelPosition.y += .2f;
-				// pitch -= .5f;
-				// camera.position +=  camera.forward * DeltaTime * 6.0f;//* .2f;
-				ProcessKeyEventPress(isDown, wasDown, &moveForwardState);//moveBackforward.down = true;
-
-			}
-			break;
-		}break;
+		
 		default: 
 		{
 			return DefWindowProc(hwnd, uMsg, wParam ,lParam);
@@ -430,16 +360,65 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 float DeltaTime;
 
-
-
 void HandleWindowsMessages(HWND &WindowHandle)
  {
  	MSG msg;
 	if(PeekMessage(&msg, NULL,0, 0, PM_REMOVE )) 
 	{ 
+
+		switch(msg.message) {
+
+		case WM_SYSKEYDOWN:
+		case WM_SYSKEYUP:
+		case WM_KEYDOWN:
+		case WM_KEYUP:
+		{
+			LPARAM lParam = msg.lParam;
+			WPARAM wParam = msg.wParam;
+
+			bool wasDown = ( (1 << 30) & lParam ) != 0 ? true : false; 
+			bool isDown  = ( (1 << 31) & lParam ) == 0 ? true : false; 
+
+			if(wParam == VK_ESCAPE) {
+				PostQuitMessage(0);
+				Running = false;
+			}
+
+			if(wParam == VK_RIGHT || wParam =='D')
+			{
+				ProcessKeyEventPress(isDown, wasDown, &moveRightState);
+
+			}else
+			if(wParam == VK_LEFT || wParam =='A')
+			{
+				ProcessKeyEventPress(isDown, wasDown, &moveLeftState);
+
+			} else
+			if(wParam == VK_DOWN || wParam =='S') {
+
+				ProcessKeyEventPress(isDown, wasDown, &moveBackState);
+
+			}else
+			if(wParam == VK_UP || wParam == 'W') {
+
+				ProcessKeyEventPress(isDown, wasDown, &moveForwardState);//moveBackforward.down = true;
+
+			}
+			
+			}break; 
+			case WM_MOUSEMOVE: 
+			{
+				ProcessMouseInput(WindowHandle, msg.wParam, msg.lParam);
+			
+			}break;
+			default:
+			{
+
+			   TranslateMessage(&msg); 
+			   DispatchMessage( &msg); 
+			}
+		}
 		
-		   TranslateMessage(&msg); 
-		   DispatchMessage( &msg); 
 	}
 
 }
@@ -481,6 +460,8 @@ int CALLBACK WinMain(
 	//MSG msg = {}; 
 	float lastMouseX   = 0, lastMouseY = 0;
 	float ignoreDeltaX = 0, ignoreDeltaY = 0;
+	
+
 	SetCapture(WindowHandle);
 
 	Running = true;
@@ -488,14 +469,10 @@ int CALLBACK WinMain(
 	{
 		MSG msg; 
 
-			//reset input
 		mouseYDelta = 0;
 		mouseXDelta = 0;
 
-		HandleWindowsMessages(WindowHandle);
-		//GetMessage( &msg, NULL, 0, 0))  
-		
-
+		HandleWindowsMessages(WindowHandle);	
 		HDC DeviceContext = GetDC(WindowHandle);
 
 		//Clear Screen to a Dark Grey
@@ -503,19 +480,27 @@ int CALLBACK WinMain(
 		glClearColor(0.3f, .3f, .3f, 0.3f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-		yaw   += mouseXDelta * DeltaTime * 20;
-		pitch += mouseYDelta * DeltaTime * 20;
+		yaw   += mouseXDelta * DeltaTime * 40;
+		pitch += mouseYDelta * DeltaTime * 40;
+
+  		float moveSpeed = 5.0f;
+	    if(moveForwardState == true) {
+			camera.position += camera.forward * DeltaTime * moveSpeed;
+		}
+
+		if(moveBackState == true) {
+			camera.position -= camera.forward * DeltaTime * moveSpeed;
+		}
+
+		if(moveRightState)
+			camera.position += GetRight() * DeltaTime * moveSpeed;
+
+		if(moveLeftState)
+			camera.position -= GetRight() * DeltaTime * moveSpeed;
 
         ProcessPitch();
 	    ProcessYaw();
 
-	    if(moveForwardState == true) {
-			camera.position -= camera.forward * DeltaTime * 10.0f;
-		}
-
-		if(moveBackState == true) {
-			camera.position += camera.forward * DeltaTime * 10.0f;
-		}
 		
 		RenderOpenGLContext(Shader);
 		SwapBuffers(DeviceContext);
