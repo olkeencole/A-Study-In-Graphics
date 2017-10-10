@@ -1,0 +1,692 @@
+
+10 - 4
+TumbleSeed Switch
+
+soon Battle Chef
+David Laskey
+
+Additional Notes:
+bit.ly/TumbleSeedUnite
+@david_laskey
+
+
+4 + 1 Programmer and 1 QA
+
+Fall 2014 Benedict's Prototype Year and half of creating system from prototype
+
+Year and Half: May 2016 begin Porting
+
+
+Actual TimeLine
+-July 2016 cold email Nintendo - check out NX
+-Dec 2016 running on Switch load times atrocius
+-May 2017 release
+- Lotcheck Submission - leaderboards and QA certs, controllers
+- 2 preChecks
+- Day 1 Patch
+
+
+Overview
+- Look at optimiz
+- share suprises and useful tips
+- Have you feel more confident
+- 
+
+
+Issues
+- Long load times
+- inconsistent frame rates (spikes due to GC) 
+- 4 and a half biomes
+
+- spawn one biome at a time. once player reaches end, fade out and generate the next
+- works well as a good pacing moment (tech influencing design, how bout dat!) 
+
+- no object pooling - don't call instantiate
+- pooling made front end worse but helps in mid-game. No loading midgame
+- spaghetti code by the end for world object management. Risky to make more large game architecture changes
+
+
+
+Frame Issues
+- Frame culling: 
+- Ene
+- Disable objects and behaviors that are irrelevant tow hat's on screen. 
+
+Dancing with the garbage collector
+
+- avoids calls to instantiate and use nonalloc variants of physics function calls
+Takes steop to reduce frequence of automatical GC.Collect() calls
+
+-Find clever times to call GC.Collect() to avoid noticeable hitching. 
+
+ Read documentation, 200 megs worth of garbage,  smaller blocks and then throw it away. Apparently it makes it more thoughtful
+
+ - GC Collect on Pausing and Sceene Transitions
+ - Don't use OnTriggerStay!
+
+
+ Platform Integration 
+
+ Decoupling
+  - #if UNITY_SWITCH #endif
+  - 
+  Abstraction is your friend (abstract classes)
+  - BasePlatform class
+  - empty implementations of code signatures you need on the game side
+  - Platform.Initialize() and decides the platform and sets everything up 
+
+  - helps isolates
+
+  Loading is not always a syncronous loading
+
+
+  - Interface Design Tips
+   - assume most things are asynchronous
+   - Create functions that adhere to platofrm with most complex needs - save files (bytes vs string values) - always deal with bytes and let platforms deal with it
+   - System.Action is the best!!!! Use it to pass in callbacks for your asynchronous functions. 
+   - SuccessCallback, FailureCallback
+
+   - Create enums that return platform related errors, corrupts, no save file, what went wrong? Show users!!!
+   - 
+
+   Custom Native Plugins
+   - plugins to call native C++ APIs 
+   - Unity usually provies these for you BUT, might be missing a feature you need!!!
+   - Native functions
+   - might have bugs or not compliants with latest guidelines
+
+   - Not just for consoles. Comes in handy with native Windows, OSX, iOS stuff
+   - Tinker and figure it out. 
+
+   exern "C" {} surround global functions with it to make the linker happy name mangling
+
+   Other needs
+   - passing/retrieving simple data types is trivial - int, float, bool
+   - Complex? strings, bytes, data blobs and save files SEE THE BLOG POST bit.ly/TumbleSeedUnite
+
+   Logistical Insight
+
+   Get familiar wiht Certification and Platform Backend
+
+   first change, dive into the cert requirements and look over theme
+   - Requirements will greatly affect your UI and UX flow for players. Fix this late can be PAINFUL!!!!
+    - read the guidelines and list out the errors, UI for sure
+    - do cert prechecks!!!! Work with release manager
+
+    - Fill out forms and network services ASAP (if you need them)  DO THEM NOW!!! Back and Forth Process
+    - When you can do anything, do everything!
+
+    - Look into necessary stores assets early. Build this into schedule. 
+
+    -Be willing to pivot
+    - sometimes you can't wait for them to fix. Work around the problem. Static images instead of videos. Work around the problem
+    - 
+    - Have a dedicated QA Person!!!! Destroy the game for a month! 
+
+Q / A
+     Processor Bound - PHysics! Faster than 60 FPS - PHysics Bound, optimize collision matrices
+     Separate project for testing native plugins!!
+
+
+
+PERFORCE
+
+- Stuck in the Repo With You
+- Large Binaries
+
+- Storage starts out innocently enough
+- 
+
+ Avg off AAA games
+  100s of 1000s of files, 1TB of code and assets at HEAD
+  50GB + changes of day
+  100 team members
+  -
+  move large assets closer to the user
+   - good distribution strategies can reduce length cyc
+   - keep track of everything
+    - audit things, activity and staatus - constantly
+     who has it? who has it locked? 
+
+    - Helix Core 
+    	Helix proxy - file cache
+    	Helix replicas - replicates main server and version history
+
+    	Helix TeamHub and Helix4Git - different repos with Git and Perforce
+    	- Git inside Perforce now. Mirror Git into Perfoce servers
+
+    	-  
+
+
+  - Oxen Free
+
+
+Mummy, Mr Robt
+
+- Feel good to play - controller first
+
+- dialogue and feel conversation, walking and talking
+
+Core Mechanic: walking and talking at the same 
+
+In world dialgoue optoins
+Interrupt and resume
+conversations continue without you
+
+Night Tools 
+
+RPG Tool Maker Event Tool  RPG Maker
+
+
+Night Script
+ NightScreenObject
+ Initiate Choice
+
+  Add Force and Set Position - dont keep physics control with coders
+
+  CrossFade to Animation and Teleport Character
+
+  autoRepaintOnChange = true !~!!!!
+
+
+
+Question: 
+- Why didn't you just use PlayMaker? 
+
+
+- Set Bookmark - come back to a previous conversation node
+- Entry Point
+
+1) Takes a long time to copy text into NightScript
+2) NightScript includes a lot that writers don't necssarily care about
+
+ - Final Draft  base of of 
+ - Night Draft - SO and editor in Unity
+
+ -  difficult to get to FinalDraft levels of efficiency for writers. last 20% takes 80 of the time to get 80 of writers efficiency 
+
+ - nightschoolstudio.com
+
+ - Two months of tool development and balancing work 
+
+ 
+
+ 1024 X
+ Walking Dead: Rendering 10000 Objects On Low End Mobile Devices
+ Jason Booth - Disruptor Beam
+
+ Seeger - 
+
+ MicroSplat terrain shaders
+
+ Project Goals -  
+  - huge world 50,000 players 
+  1025 x 512 game tiles
+  freely scrollable
+  based on virginia /dc
+
+- Needs to be built by a small teamMap
+  - 2 full times artists on the Map
+  - OpenGLES 2.0 / w 1gb of ram
+    - 40% of android devices
+
+    100 megs for app store, initial download
+    - stream to user
+    Unity 5.3
+
+    Solutions driven by constraints
+    - would use a very diff set of solutions with more modern devices
+    - choose constraints
+    - DC / City scape area
+    - weather
+    - newspaper and 
+
+
+Map Construction Approach
+ - a mix of proceural and hand placed content
+  - hand placed 
+    - landmarks, overppasses and story elements
+
+    -Procedural 
+    - High level paintings of regions
+    - procedurally generations varieation
+    - micro-stories
+      - help in blood on a roof
+
+    - 32 x 64 regions for loading and rendering
+    - 2D map editor that converts to a 3d world
+    - 
+    instantiate a view of the procedural stuff
+     takes 20 gb to instantiate the full scene. 
+     - 
+
+     Map Compiler
+       foreach block 
+       - generates procedural data
+       Save results into Prefab Stream format
+       - asset bundles
+
+       Compiles info for server 
+       
+
+       Nested Prefab System - Prefab Stream
+       - Editor Tools allow you to pack and unpack
+       - Used for construction and delivery
+       - PackedTransform - pack 7 transforms
+
+       Created unique file format to use custom compression
+       -
+       - Allows - chance
+
+
+       Map Blocks
+       - high med and low layers on objects on low end devices
+       - flatten for delivery to the user
+
+
+       Rendering the data
+       - Compute visible blocks from block bounds and view frustrum 
+       - expand bounds for loading region an dkick off asset bundle loads blocks- spiral load
+       - 	Loaded blocks are unpacked in a separate threads
+       - No slow mathf or vector functions, unrolled for speed - math libs are too slow
+        - result is a matrix4x4 for each packed transform
+
+        - OpenGLES 2.0 
+        		- No instancing
+        		- Thousands of draw calls
+        		- no static combine is not an option 
+        - Abuse Dynmaic batching!!!!900 attributes or lower, 180 verts
+        - pkac lots of meshes to use the same texture sheet. 
+        - Restrictions on the artist
+        - Pooling? OnEnale/disable,Transformchance overhead was too great and too much memory from the pool memory Can't pool
+       
+        - Optimized Hide Pool
+        -  everything in world space - move everything out of the way
+        - own update loop, 
+        - 
+        - Direct Drawing 
+          - Drawmesh - Unpack transforms, still too slow
+          - Issue is internal render node management each frame OUCH can't chance source
+          - Command Buffers don't batch - pooey!!! 
+          - 
+
+          - this has to go through dynamic batching
+          - DrawMeshPersistent( int id) ;
+          - ClearMeshPersistent(id); 
+          - Raise dynamic batching limit to 2700 while we're there
+          - Internally keeps draw call around between frames
+          - Use block location as ID
+          - cleary by id when unloading a block
+           30 lines of c++ code
+           - 
+
+           - must batch somehow - aren't seen close - limit anim set
+           - GLES 2 no vertex 
+
+           - convert anim to mesh flipbooks 1 frame = 1 mesh- no blending - all meshes under the dynammic batching count
+            -takes memory - 40mb of anim data
+            - Pregenerate?????
+
+            - Build everything like its a particle system
+            - Update array of all foods at once
+
+            - Math libraries are very slow - 
+
+            - Be kind to the cache  - data oriented design
+             - raycasting on a 64x64 bit grid of data is practically free; all in the cache
+             - entire region of navigation data is less than 1kb
+             - 
+
+             Don't jump straight to threads
+
+             - Amortization is faster than threading
+
+             - jpeg compression 
+
+             - CbCr - store as palettized RGB byte array
+             - Convert to CbCr to load
+             - 1 1024 x 1024 texture 3.1 mb of data
+             - water - render under water as part of terrain pass
+             - shore lines, fogs itself
+             - No depth map
+             - move vert
+
+
+             SLA approximation 
+             - Eric Lengyels
+             - 
+
+             Separate resolution for the UI and the 3D world
+             - keep UI at high res
+
+             - 3D world is rendereed to an offscreen 16 bit target
+             - 16bit to 32, apply blur, vignette, color correction, bye bye banding
+             - Render UI on top
+             - 
+
+             - Asset Bundles - Unite two years
+             - 
+              -  only mark data which will be loaded from code into a bundle
+              -  parse dependencies - large assets, shared assets, unique
+              - textures/sounds get put in their own bundle
+              - 
+
+              Do not use variants
+               - Instead, build unique manifest for each variant level 
+               - p4 checkout, preprocess all textures an
+               - preprocessor , 
+               - p4 integration script
+               - 5.2 issues with cache server - 
+               - 
+               Asset Bundle Loading Optimization
+                - almost nothing is in the app
+                - loading screen, error dialog, login panel
+                - 
+                - load on demand on default
+                - optimize initial load time
+                 - include subset of asset bundles in the app (streaming assets) - 
+                  - keeping an appsize under 100mb
+                  - if server hash == inline has, loading from streaming assets
+                   - if diff, download from server
+                   - 
+
+                  Defer non-essential systems
+                  - background music
+
+ 
+
+C# Performance and Job System
+ - linear, vectorization, SIMDness
+ - this is what the job compiler does.
+ - 
+  Data Oriented Design Overview
+
+  - data in cachelines
+  - 
+
+  class PlayerData // 40 bytes
+   public string  name // 8 bytes
+   public int[] someValues; //8 bytes
+   public Quaternion rotation // 16 bytes
+   public float3 posiiton //12 bytes
+
+   PlayerData findclosest(float3 pos) {
+
+   	 foreach(  find distance)
+   }
+
+   // Allocate C# class random in memory 
+   - 
+
+
+   //Avoid pointer chasing in loops
+
+   struct PlayerData //40 bytes
+   {
+   	public string name; 8 
+   	public int[] someValues 8
+   	public Quaternion rotation; 16 
+   	public float3 position / 12
+   }
+
+
+// Hot cold split, use every byte loaded in a cacheline
+PlayerData[] players      // cold
+float3[] playerPositions; //  hold 12 bytes
+//completely linear in memory
+
+
+- Data Oriented Design
+ -no virtual functions - access random mem location for the class vtable
+- memory tightly packed linear access
+- no GC allocations, explicit memory management
+- Being upfront and clear about what data we access
+
+- Let go of OOP patterns, new Entity component system is all about making that easy 
+- 
+
+
+[InjectTuples]
+ComponentSystem
+
+IComponentData - tightly packed in memory
+
+ComponentArray
+ComponentDataArray<RotationSpeed>
+
+GameObjectEntity - new type of script
+
+- ComponentSystem
+- 
+
+
+[InjectTuples]
+ComponentArray<Transform> transforms; 
+
+or use ComponentGroup Api directly 
+
+
+
+Destorying
+[InjectDependency]
+Entity entityManager
+
+SpawnMinion 
+Entity entity = entityManager.Instantiate(prefab); 
+
+Spawner: ScriptBehaviour
+
+Instance rendering: 
+
+new NativeArray<Entity>(count, Allocator.Temp); 
+memcpy is 7ms , fastest possible
+
+new My ComponentData
+entityManager. SetComponen
+ComponentData is always kept packed /defragmentation
+
+EntityComponent System!!! 
+
+
+JOB SYSTEM and CONTAINER LIBRARIES
+jobified
+
+ - Native Containers
+ - Native Array<int>( 100, Allocator.TempJob); 
+
+ nativeArray<T>
+ NativeList
+ NativeSlice
+ NativeHashmmap
+ NativeMultiHashmap
+ NativeMulti
+
+MANUAL MEMORY MANAGEMENT!!!
+HAVE TO DISPOSE IT!!!!!! 
+
+Editor > Leak Detection
+
+Schedule a Job
+
+Demo explosion system
+
+Demo safety system
+
+
+IComponentData 
+
+ComponentDataWrapper<MinionVelocity>() ;
+
+IJobProcessComponentData<MinionVelocity> IAutComponentSystemJob
+
+
+
+
+- Know Your Limits
+- Agenda 
+
+- Calculating the GPU processing budget
+ - tune for the hardware
+ GPU budget: cycles /frame/ pixel; cycles / frame/ vertex
+
+ - 12 GPU Cores @ 650 Mhz - 12 x 650 M single cycle operations per second
+ - Need 60s FPS: Full HD 1920 x 1080 = 2,073,600 pixels
+
+ fragCycleBudget = (130 M cycles/frame) / 2.07M)  ~ 63 cycles/frame/pixel  where 13
+
+ - We now have our budget
+
+ Mali Graphics Debugger 
+ - Drawcall by drawcall stepping - mali gpu integrated in Unity
+ - libMGD.so into the Plugin/Android 
+ - Development build when building
+ -OpenGL ES - 
+
+
+ - Get Your vertex and frag cycle count from MGD
+ - 
+  - frame buffer eres
+
+  - MSAA 4x GPU
+  - MSAA 8x GPU - not bad if you keep poly count under control (like anything else?) 
+  - 
+  - ASTC
+
+  - 
+  - Question: 
+
+  What we Wanted
+   - beautiful game
+   - simple to play without hands (tap) 
+   - lot of colors
+   - smooth run
+
+   - Optimizations starts on day 1
+
+   - Level Editor : iterate faster and no dev dependence 
+   - Make GD editor
+
+   - 3D mesh creation from 2D tiles
+   - Adjust heights
+   - Generate Lightmaps - no realtime lights
+   - 
+
+
+   Game Optimizations
+
+
+   UNITY S.O.L.I.D
+  - build larger and more manageable code
+  - Dan - Unity AI programming / XNA c#
+
+  - Productive Edge
+
+  1. Bob - make a game
+     - Interface blah
+     - 
+     - New Features Broke Old Ones 
+      - Bob's code would awkwardly overlap
+      - 
+
+      Modular Debuggable and 
+
+
+	Single Responsibility
+	Open/closed
+	Liskov substitution
+	Interface segregation
+	Dependency inversion
+
+
+	Dependency Inversion
+	 - use Interfaces or Abstracts
+	 DIP - don't depend on concrete - interfaces are ideal , abstracts work too
+	 -  Keep eerything design friendly
+	 -  Interfaces don't work in inspector
+	 - 
+
+	 Interface Segregation 
+	  - interface re use was costly
+	  - You have to write out all the interface funcs
+
+	  - It means only one member or member purpose per interface - only one reason to fail
+	  - Use interfaces, small and focuses, a class can use many interfaces
+
+	  - Interfaces not supports in the inspector, only internal methods use it
+	  -
+	  Single Responsibility 
+	   - A class should do only 1 thing - Have only 1 reason to fail
+	   - small class and simple code
+	   - prefer tiny components
+	   - if 1 class handles 10 things....
+	   - 
+
+	  - OPen Closed Principle
+	   - open for extension, but  closed for modification - 
+	   - Don't change a class and complete it
+	   - But expand it on it. 
+	    - abstract float area - reconstruct Area
+	    - 
+
+	    Liskov's Substitution Principle
+	    - If 2 diff types and same base type, they shold both work for all members that use the base type. 
+	      - trust the base type
+	      - don't need xray glasses
+	      - ??? Look at the code to understand class???
+
+	      - Dependency Injection - not inversion but requires it
+
+	      - Instead of saying IGameBoard board = new GameBoard()
+	      You would say: 
+	      IGameBoard board = Di.Get<IGameBoard>();  (Factory pattern also)
+	      NinJect
+
+	      UnitySolid
+	      bit.ly/UnitySOLID
+
+	      IGameBoard board = new GameBoard()
+
+	      publi IGameBoard board { get; set; }
+
+	      When DI executes it'll set
+
+	      VS Setup: 
+	       - DLL project w/
+	       - Unity Support
+
+	       DI - D. Injection
+
+	       Your code will sit in Behaviours, Lib and Lib.Tests
+	       IoC nopes and UnityBase nope
+
+	       GameConfig.cs - View
+
+	       - ViewModels 
+	       		-GameConfig.cs
+	       - InjectBehaviour
+
+	       - You could make your own Injector or Factory class
+	       - 
+	       DiBindings : IBindingConfigurations
+
+	       public int Order => 0; ???
+
+	       Setup()
+	       {
+	       	Bind<IBallController>().AsSingleton<BallController>*)
+	       	GameController
+	       	IMouseManagerController
+
+
+	       }
+
+	       public Game(){
+	       Di.Bind<IGame>().AsSingleton(this);
+	       }
+
+	       Arrange React Assert 
+
+	       
+
+
+
