@@ -85,6 +85,7 @@ const char* fragmentShader =
 	"}\n\0";
 
 
+Vector3 positionOffset; 
 
 //WGL CONSTANTS FLAGS
 //
@@ -176,7 +177,7 @@ gl_GetShaderInfoLog   *glGetShaderInfoLog  ;
 //
 static HGLRC GlobalRenderContext; 
 static int WindowWidth  = 800; 
-static int WindowHeight = 600; 
+static int WindowHeight = 800; 
 static GLuint VAO,VBO, Shader; 
 
 
@@ -438,7 +439,7 @@ void SortVerticesByAscendingOrder( ) {
 
 }
 
-void FillFlatBottomTriangle( Vector3 v1, Vector3 v2, Vector3 v3) {
+void FillFlatBottomTriangle( Vector3 v1, Vector3 v2, Vector3 v3, uint32 color) {
 
 	// float step =  v3.y - v1.y; 
 	//if(v1.y > v2.y) return; 
@@ -451,14 +452,14 @@ void FillFlatBottomTriangle( Vector3 v1, Vector3 v2, Vector3 v3) {
 
 	for (int scanLine = v1.y; scanLine <= v2.y; scanLine++) //scanline is walking down the y from top to bottom
 	{
-		DrawLine( GetColor(.3f,.5f, .7f) , curX1, scanLine,   curX2, scanLine );
+		DrawLine( color, curX1, scanLine,   curX2, scanLine );
 		curX1 += invSlope1; 
 		curX2 += invSlope2;   
 	}
 }
 
 //Assume that v1 and v2 have the same y value
-void FillFlatTopTriangle( Vector3 v1, Vector3 v2, Vector3 v3) {
+void FillFlatTopTriangle( Vector3 v1, Vector3 v2, Vector3 v3, uint32 color) {
 
 	float invSlope1 = (v3.x - v1.x) / (v3.y - v1.y); 
 	float invSlope2 = (v3.x - v2.x) / (v3.y - v2.y); 
@@ -468,7 +469,7 @@ void FillFlatTopTriangle( Vector3 v1, Vector3 v2, Vector3 v3) {
 
 	for (int scanLine = v3.y; scanLine >= v2.y; scanLine--) //Going up the screen
 	{
-		DrawLine( GetColor(.3f, .4f, .2f ), curX1, scanLine, curX2, scanLine);
+		DrawLine( color, curX1, scanLine, curX2, scanLine);
 		curX1 -= invSlope1; 
 		curX2 -= invSlope2; 
 	}
@@ -511,7 +512,7 @@ void Swap( Vector3 *v1, Vector3 *v2){
 	v2->y = temp.y; 
 }
 
-void DrawTriangle(Vector3 v1, Vector3 v2, Vector3 v3){
+void DrawTriangle(Vector3 v1, Vector3 v2, Vector3 v3, uint32 color){
 
 	//Assume its a general triangle
 
@@ -525,11 +526,17 @@ void DrawTriangle(Vector3 v1, Vector3 v2, Vector3 v3){
 	v4.y = v2.y; 
 	//v4.x = v3.x; 
 
-	FillFlatBottomTriangle(v1, v2, v4); 
+	FillFlatBottomTriangle(v1, v2, v4, color); 
 
-	FillFlatTopTriangle(v2, v4, v3); 
+	FillFlatTopTriangle(v2, v4, v3, color); 
 }
 
+void DrawTriangle(Vector3 v1, Vector3 v2, Vector3 v3){
+
+	DrawTriangle(v1, v2, v3, GetColor(1.0f, 1.0f, 1.0f) ); 
+}
+
+    Mesh model; 
 
 //Device Inde Bitmap
 internal void  ResizeDIBSection(int width, int height){
@@ -582,8 +589,6 @@ internal void  ResizeDIBSection(int width, int height){
    //   DrawLineNDC( GetColor(.0f, 1.0f, 0.0f),  .0f,   .0f, 1.0f, 1.0f); //errors out    
    //  DrawLineNDC( GetColor(.0f, 1.0f, 0.0f), 1.0f, -1.0f,  .0f, .0f); //errors out
 
-    Mesh model; 
-    model = LoadMeshOBJ("models/", "african_head.obj");
 
 
     int stride = 6; 
@@ -642,6 +647,7 @@ internal void  ResizeDIBSection(int width, int height){
 
     //Draw last Vert to First Vert
 
+    Vector3 lightDir = Vector3(0, 0, 1.0f);
 
     int faceCount = model.indices.size() / 3;
 
@@ -651,7 +657,7 @@ internal void  ResizeDIBSection(int width, int height){
     	DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[i].position,   model.vertices[i+1].position );
     }
 
-	for (int i = 0; i < faceCount;  i+= 3)
+	for (int i = 0; i <  model.vertices.size();  i+= 3)
    {
    	int index0 = i;//  model.indices[i]; 
    	int index1 = i+1; //model.indices[i+1];
@@ -660,21 +666,23 @@ internal void  ResizeDIBSection(int width, int height){
    	int index2 =  i+2; //model.indices[i + 2];
    	int index3 = model.indices[i  + 3];
    	//int index4 = model.indices[i  + 5];
+   	float intensity = Dot(model.vertices[index2].normal, lightDir ); 
 
-   	DrawTriangle( ConvertNDCToScreen( model.vertices[index0].position), 
-				  ConvertNDCToScreen( model.vertices[index1].position), 
-				  ConvertNDCToScreen( model.vertices[index2].position) );
+   	if(intensity > 0 )
+   	DrawTriangle( ConvertNDCToScreen( model.vertices[index1].position + positionOffset), 
+				  ConvertNDCToScreen( model.vertices[index2].position + positionOffset), 
+				  ConvertNDCToScreen( model.vertices[index0].position + positionOffset),
+				  GetColor( intensity , intensity,  intensity) );
     	
-	DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[index0].position,   model.vertices[index1].position );
-	DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[index1].position,   model.vertices[index2].position );
-	DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[index2].position,   model.vertices[index0].position );	
+	//DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[index0].position,   model.vertices[index1].position );
+	//DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[index1].position,   model.vertices[index2].position );
+	//DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[index2].position,   model.vertices[index0].position );	
 
     }
 
           // DrawWireTriangle((skewed[2]), (skewed[0]), (skewed[1])) ; 
 
-
-      DrawTriangle(ConvertNDCToScreen(skewed[2]), ConvertNDCToScreen(skewed[0]), ConvertNDCToScreen(skewed[1])) ; 
+    //DrawTriangle(ConvertNDCToScreen(skewed[2]), ConvertNDCToScreen(skewed[0]), ConvertNDCToScreen(skewed[1])) ; 
 
 
 
@@ -779,6 +787,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 				PostQuitMessage(0);
 			}
+
+			if(wParam == VK_RIGHT || wParam =='D')
+			{
+				positionOffset.x += .01f;
+
+			}else
+			if(wParam == VK_LEFT || wParam =='A')
+			{
+				positionOffset.x -= .01f;
+			}
 		}break;
 		return 0;
 	}
@@ -799,6 +817,9 @@ int CALLBACK WinMain(
 	wc.lpfnWndProc = WindowProc; 
 	wc.hInstance   = Instance; 
 	wc.lpszClassName   = "Windows Test";
+
+	    model = LoadMeshOBJ("models/", "african_head.obj");
+
 	
 	RegisterClass(&wc);
 	//Create Window	
