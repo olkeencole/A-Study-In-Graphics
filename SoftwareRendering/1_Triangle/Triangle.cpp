@@ -536,7 +536,152 @@ void DrawTriangle(Vector3 v1, Vector3 v2, Vector3 v3){
 	DrawTriangle(v1, v2, v3, GetColor(1.0f, 1.0f, 1.0f) ); 
 }
 
-    Mesh model; 
+
+float Max( float a, float b){
+	if(a > b)
+		return a; 
+	else
+		return b;
+}
+
+float Min(float a, float b){
+	if( a > b)
+		return b; 
+	else 
+		return a;
+}
+float min3( float f1, float f2, float f3){
+	float result = Min(f1, f2);
+	result = Min(result, f3);
+	return result;
+}
+
+float max3(float f1, float f2, float f3){
+	float result = Max(f1, f2); 
+	result = Max(result, f3);
+	return result;
+}
+
+/*
+ I think this  is ultimately a cross product, since
+ the magnitude of the cross product is the area of the parallogram
+ . dividing by half gets a triangle area. 
+	
+	cross(b-a , c-a); 
+
+*/
+
+float perpDot(const Vector3 &a, const Vector3 &b){
+	return (a.x * b.y) - (b.x * a.y);
+}
+
+int barycentric(const Vector3 &a, const Vector3 &b, const Vector3 &c){
+	return (b.x - a.x) * (c.y-a.y) - (b.y-a.y)*(c.x-a.x);
+}
+
+void DrawBaryTriangle(   const Vector3 &v1, const Vector3 &v2, const Vector3 &v3, uint32 color){
+
+	// Compute Bounding Box
+	float minX = min3( v1.x, v2.x, v3.x);
+	float maxX = max3( v1.x, v2.x, v3.x);
+	float minY = min3( v1.y, v2.y, v3.y);
+	float maxY = max3( v1.y, v2.y, v3.y);
+
+	minX = max(minX, 0);
+	maxX = min(maxX, WindowWidth-1);
+
+	minY = max(minY, 0);
+	maxY = min(maxY, WindowHeight-1);
+
+	int x = 0, y = 0; 
+
+	for (y = minY; y <= maxY; ++y)
+	{
+		for (x = minX; x <= maxX; ++x)
+		{
+			Vector3 currentPoint = Vector3(x, y, 1.0f);
+
+			float c1 = perpDot(v1, currentPoint);
+			float c2 = perpDot(v2, currentPoint);
+			float c3 = perpDot(v3, currentPoint);
+
+			float area = perpDot(v1, v2);
+
+			float s = perpDot(currentPoint - v1, v2);
+			float t = perpDot(v1, currentPoint - v2); 
+			float sN = s / area;
+			float sT = t / area;
+
+
+
+			int w0 = barycentric(v2, v3, currentPoint);
+			int w1 = barycentric(v3, v1, currentPoint);
+			int w2 = barycentric(v1, v2, currentPoint);
+
+			if(w0 >= 0 && w1 >= 0 && w2 >= 0){
+				DrawPixel(color, x, y);
+			}
+		}
+	}
+
+}
+
+void DrawBaryTriangle(   const Vector3 &v1, const Vector3 &v2, const Vector3 &v3, Vector3 &color1, Vector3 &color2, Vector3 &color3){
+
+	// Compute Bounding Box
+	float minX = min3( v1.x, v2.x, v3.x);
+	float maxX = max3( v1.x, v2.x, v3.x);
+	float minY = min3( v1.y, v2.y, v3.y);
+	float maxY = max3( v1.y, v2.y, v3.y);
+
+	minX = max(minX, 0);
+	maxX = min(maxX, WindowWidth-1);
+
+	minY = max(minY, 0);
+	maxY = min(maxY, WindowHeight-1);
+
+	int x = 0, y = 0; 
+
+	for (y = minY; y <= maxY; ++y)
+	{
+		for (x = minX; x <= maxX; ++x)
+		{
+			Vector3 currentPoint = Vector3(x, y, 1.0f);
+
+			float c1 = perpDot(v1, currentPoint);
+			float c2 = perpDot(v2, currentPoint);
+			float c3 = perpDot(v3, currentPoint);
+
+			float area = perpDot(v1, v2);
+
+			float s = perpDot(currentPoint - v1, v2);
+			float t = perpDot(v1, currentPoint - v2); 
+			float sN = s / area;
+			float sT = t / area;
+
+
+			int w0 = barycentric(v2, v3, currentPoint);
+			int w1 = barycentric(v3, v1, currentPoint);
+			int w2 = barycentric(v1, v2, currentPoint);
+
+			float Nw0 = ((float) w0 / area) / 2.0f;
+			float Nw1 = ((float) w1 / area) / 2.0f; 
+			float Nw2 = ((float) w2 / area) / 2.0f;
+
+			if(w0 >= 0 && w1 >= 0 && w2 >= 0){
+				uint32 finalColor = GetColor( Nw0*color1.x + Nw1*color2.x + Nw2*color3.x, 
+											  Nw0*color1.y + Nw1*color2.y + Nw2*color3.y,
+											  Nw0*color1.z + Nw1*color2.z + Nw2*color3.z );
+
+
+				DrawPixel(finalColor, x, y);
+			}
+		}
+	}
+
+}
+ 
+ Mesh model; 
 
 //Device Inde Bitmap
 internal void  ResizeDIBSection(int width, int height){
@@ -600,7 +745,7 @@ internal void  ResizeDIBSection(int width, int height){
   Vector3 skewed[3]; 
 
   uint32 colors[3];
- 
+ Vector3 colors24[3];
 
     for (int i = 0; i < ArrayCount(vertices)-1; i+=stride)
     {
@@ -608,7 +753,12 @@ internal void  ResizeDIBSection(int width, int height){
     	uint32 color = GetColor(vertices[i+3], vertices[i+4], vertices[i+5] ); 
     	triangle[i / stride] =  Vector3( vertices[i], vertices[i+1], vertices[i+2] );  
     	colors[ i / stride] = color;
-    	// triangle[i] = v1;
+    	// triangle[i] = v1;[]
+
+    	colors24[i / stride].x = vertices[i+3]; 
+    	colors24[i / stride].y = vertices[i+4]; 
+    	colors24[i / stride].z = vertices[i+5]; 
+
     	//DrawLineNDC(color,  vertices[i], vertices[i+1],  vertices[i+stride], vertices[i+1+stride]   );
     	//DrawTriangle(color, Vector3(vertices[i], vertices[i+1] ), Vector3( vertices[i+stride], vertices[i+1+stride]) ); 
     }
@@ -669,7 +819,7 @@ internal void  ResizeDIBSection(int width, int height){
    	float intensity = Dot(model.vertices[index2].normal, lightDir ); 
 
    	if(intensity > 0 )
-   	DrawTriangle( ConvertNDCToScreen( model.vertices[index1].position + positionOffset), 
+   	DrawBaryTriangle( ConvertNDCToScreen( model.vertices[index1].position + positionOffset), 
 				  ConvertNDCToScreen( model.vertices[index2].position + positionOffset), 
 				  ConvertNDCToScreen( model.vertices[index0].position + positionOffset),
 				  GetColor( intensity , intensity,  intensity) );
@@ -680,9 +830,12 @@ internal void  ResizeDIBSection(int width, int height){
 
     }
 
-          // DrawWireTriangle((skewed[2]), (skewed[0]), (skewed[1])) ; 
+          // DrawWireTriangle((skewed[2]), (, [0]), (skewed[1])) ; 
 
-    //DrawTriangle(ConvertNDCToScreen(skewed[2]), ConvertNDCToScreen(skewed[0]), ConvertNDCToScreen(skewed[1])) ; 
+    DrawBaryTriangle(ConvertNDCToScreen(triangle[2]),
+                 ConvertNDCToScreen(triangle[1]), 
+                 ConvertNDCToScreen(triangle[0]), 
+    	         colors24[2], colors24[1], colors24[0] ) ; 
 
 
 

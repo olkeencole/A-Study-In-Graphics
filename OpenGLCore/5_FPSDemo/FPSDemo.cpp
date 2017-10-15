@@ -254,8 +254,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			SetPixelFormat(DeviceContext,  letWindowChoosePixelFormat, &pfd); //is pfd correct? 
 
 			HGLRC renderContext = wglCreateContext(DeviceContext ); // dummy context
-			
-
+		
 			// Get OpenGL Function Pointers
 			//
 			if( wglMakeCurrent( DeviceContext, renderContext) )

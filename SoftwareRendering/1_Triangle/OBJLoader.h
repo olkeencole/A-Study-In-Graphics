@@ -240,14 +240,15 @@ Mesh LoadMeshOBJ(char* path, char* fileName)
 
 				parser	>> p.z ; //>> p.z ;
 				uv.z = CheckSlash(&parser);
-				n.z = CheckSlash(&parser);				
+				n.z = CheckSlash(&parser);	
+
 				//cout << p.x  << endl;
 
 				faces.push_back(p.x); 
 				faces.push_back(p.y); 
 				faces.push_back(p.z); 
 
-				if(uv.x >= 0)
+				if(uv.x > 0)
 				{
 					faceUVindices.push_back(uv.x);
 					faceUVindices.push_back(uv.y);
@@ -255,7 +256,7 @@ Mesh LoadMeshOBJ(char* path, char* fileName)
 
 				}
 
-				if(n.x >= 0)
+				if(n.x > 0)
 				{
 					faceNormIndices.push_back(n.x);
 					faceNormIndices.push_back(n.y);

@@ -76,7 +76,7 @@ struct Vector3
 		return result;
 	}
 
-	Vector3 operator-(Vector3 &v1, Vector3 &v2) {
+	Vector3 operator-(const Vector3 &v1, const Vector3 &v2) {
 		Vector3 result; 
 		result.x = v1.x - v2.x; 
 		result.y = v1.y - v2.y; 
