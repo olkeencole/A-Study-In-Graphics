@@ -18,7 +18,7 @@ $Notice:
 #include <iostream>
 #include <stdint.h>
 #include "OBJLoader.h"
-
+#include "model.cpp"
 using namespace std;
 
 
@@ -177,7 +177,7 @@ gl_GetShaderInfoLog   *glGetShaderInfoLog  ;
 //
 static HGLRC GlobalRenderContext; 
 static int WindowWidth  = 800; 
-static int WindowHeight = 800; 
+static int WindowHeight = 600; 
 static GLuint VAO,VBO, Shader; 
 
 
@@ -579,6 +579,33 @@ int barycentric(const Vector3 &a, const Vector3 &b, const Vector3 &c){
 	return (b.x - a.x) * (c.y-a.y) - (b.y-a.y)*(c.x-a.x);
 }
 
+// Vector3 barycentric(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p){
+
+// 	Vector3 u = Cross( Vector3(  Vector3( p3 - p1).x, 
+// 		                         Vector3( p2 - p1).y, 
+// 		                         Vector3( p1 - p).z )
+// 					    , 
+// 					    Vector3(  Vector3( p3 - p1).x, 
+// 		                         Vector3(  p2 - p1).y, 
+// 		                         Vector3(  p1 - p).z ) ) ;
+// }
+
+// Vec3f barycentric(Vec2i *pts, Vec2i P)
+//  { 
+//     Vec3f u = cross(Vec3f( pts[2][0] - pts[0][0],
+//                            pts[1][0] - pts[0][0],
+//                            pts[0][0] - P[0]),
+
+//                      Vec3f(pts[2][1] - pts[0][1], 
+//                    	       pts[1][1] - pts[0][1], 
+//                    	       pts[0][1] - P[1]));
+
+
+//     if (std::abs(u[2])<1) return Vec3f(-1,1,1); // triangle is degenerate, in this case return smth with negative coordinates 
+   
+//     return Vec3f(1.f-(u.x + u.y) / u.z, u.y / u.z, u.x / u.z); 
+// } 
+
 void DrawBaryTriangle(   const Vector3 &v1, const Vector3 &v2, const Vector3 &v3, uint32 color){
 
 	// Compute Bounding Box
@@ -601,8 +628,8 @@ void DrawBaryTriangle(   const Vector3 &v1, const Vector3 &v2, const Vector3 &v3
 		{
 			Vector3 currentPoint = Vector3(x, y, 1.0f);
 
-			float c1 = perpDot(v1, currentPoint);
-			float c2 = perpDot(v2, currentPoint);
+			float c1 = perpDot(v2 - v3, currentPoint);
+			float c2 = perpDot(v3 - v2, currentPoint);
 			float c3 = perpDot(v3, currentPoint);
 
 			float area = perpDot(v1, v2);
@@ -683,6 +710,191 @@ void DrawBaryTriangle(   const Vector3 &v1, const Vector3 &v2, const Vector3 &v3
  
  Mesh model; 
 
+
+ Vector3 Convert2(Vec3f v){
+ 	Vector3 result = Vector3(v.x, v.y, v.z);
+ 	return result;
+ }
+
+ void RenderUpdate(){
+
+    int stride = 6; 
+    int count = ArrayCount( vertices) / stride; 
+    int realCount = ArrayCount(vertices);
+
+  Vector3 triangle[3] ; 
+  Vector3 flatTop[3]; 
+  Vector3 skewed[3]; 
+
+  uint32 colors[3];
+  Vector3 colors24[3];
+
+    for (int i = 0; i < ArrayCount(vertices)-1; i+=stride)
+    {
+
+    	uint32 color = GetColor(vertices[i+3], vertices[i+4], vertices[i+5] ); 
+    	triangle[i / stride] =  Vector3( vertices[i], vertices[i+1], vertices[i+2] );  
+    	colors[ i / stride] = color;
+    	// triangle[i] = v1;[]
+
+    	colors24[i / stride].x = vertices[i+3]; 
+    	colors24[i / stride].y = vertices[i+4]; 
+    	colors24[i / stride].z = vertices[i+5]; 
+
+    	//DrawLineNDC(color,  vertices[i], vertices[i+1],  vertices[i+stride], vertices[i+1+stride]   );
+    	//DrawTriangle(color, Vector3(vertices[i], vertices[i+1] ), Vector3( vertices[i+stride], vertices[i+1+stride]) ); 
+    }
+
+    // Flat top triangle 
+    for (int i = 0; i < ArrayCount(topFlatVertices)-1; i+=stride)
+    {
+    	uint32 color = GetColor(topFlatVertices[i+3], topFlatVertices[i+4], topFlatVertices[i+5] ); 
+    	flatTop[i / stride] =  Vector3( topFlatVertices[i], topFlatVertices[i+1], topFlatVertices[i+2] );  
+    	colors[ i / stride] = color;
+    	// triangle[i] = v1;
+    	//DrawLineNDC(color,  vertices[i], vertices[i+1],  vertices[i+stride], vertices[i+1+stride]   );
+    	//DrawTriangle(color, Vector3(vertices[i], vertices[i+1] ), Vector3( vertices[i+stride], vertices[i+1+stride]) ); 
+    }
+
+    // Flat top triangle 
+    for (int i = 0; i < ArrayCount(polyVertices)-1; i+=stride)
+    {
+
+    	uint32 color = GetColor(polyVertices[i+3], polyVertices[i+4], polyVertices[i+5] ); 
+    	skewed[i / stride] =  Vector3( polyVertices[i], polyVertices[i+1], polyVertices[i+2] );  
+    	colors[ i / stride] = color;
+    	// triangle[i] = v1;
+    	//DrawLineNDC(color,  vertices[i], vertices[i+1],  vertices[i+stride], vertices[i+1+stride]   );
+    	//DrawTriangle(color, Vector3(vertices[i], vertices[i+1] ), Vector3( vertices[i+stride], vertices[i+1+stride]) ); 
+    }
+
+    uint32 color = GetColor(vertices[realCount-3], vertices[realCount-2], vertices[realCount-1] ); 
+   // DrawLineNDC(color,  vertices[realCount-6], vertices[realCount-5],  vertices[0], vertices[1]   );
+
+	//DrawTriangle( triangle[2], triangle[0],  triangle[1]);
+	// FillFlatBottomTriangle( ConvertNDCToScreen( triangle[2] ), ConvertNDCToScreen( triangle[0]),  ConvertNDCToScreen( triangle[1] )) ;
+	// FillFlatTopTriangle( ConvertNDCToScreen( flatTop[0] ), ConvertNDCToScreen( flatTop[1]),  ConvertNDCToScreen( flatTop[2] )) ;
+   
+
+    //Draw last Vert to First Vert
+
+    Vector3 lightPos = Vector3(0, 0, 5.0f);
+
+    int faceCount = model.indices.size() / 3;
+
+    for (int i = 0; i < model.vertices.size(); ++i)
+    {
+    	
+    	//DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[i].position,   model.vertices[i+1].position );
+    }
+
+    for (int i = 0; i <  model.vertices.size();  i+= 3)
+   {
+   	int index0 = i;//  model.indices[i]; 
+   	int index1 = i+1; //model.indices[i+1];
+   	int index2 = i+2; //model.indices[i + 2];
+
+   	Vector3 lightDir = lightPos - model.vertices[0].position; 
+    lightDir = 	(lightPos);
+
+   	Vector3 normalAverage = model.vertices[index0].normal + model.vertices[index1].normal + model.vertices[index2].normal;
+   	normalAverage = Normalize(normalAverage);
+
+   	float intensity = Dot(  normalAverage, Normalize(lightDir) ); 
+
+  	// if(intensity > 0 )
+   // 	DrawBaryTriangle( ConvertNDCToScreen( model.vertices[index2].position), 
+			// 	      ConvertNDCToScreen( model.vertices[index1].position), 
+			// 	      ConvertNDCToScreen( model.vertices[index0].position),
+			// 	      GetColor( intensity , intensity,  intensity)  );
+    	
+	//DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[index0].position,   model.vertices[index1].position );
+	//DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[index1].position,   model.vertices[index2].position );
+	//DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[index2].position,   model.vertices[index0].position );	
+
+    }
+
+          // DrawWireTriangle((skewed[2]), (, [0]), (skewed[1])) ; 
+
+    DrawBaryTriangle(ConvertNDCToScreen(triangle[2]),
+                 ConvertNDCToScreen(triangle[1]), 
+                 ConvertNDCToScreen(triangle[0]), 
+    	         colors24[2], colors24[1], colors24[0] ) ; 
+
+
+
+   //  Model headModel = Model("models/african_head.obj");
+   //  Vector3 lightPos2 = Vector3(0,0, 5.0f);
+
+   // for (int i = 0; i <  headModel.nfaces();  i++)
+   // {
+   // 	vector<int> face = headModel.face(i); 
+
+   // 	int index0 = face[0]; 
+   // 	int index1 = face[ 1];
+   // 	int index2 = face[2];
+
+   // //	Vector3 lightDir = lightPos - model.vertices[0].position; 
+   // 	//Normalize(lightDir);
+   // 	Vector3 lightDir = lightPos2 - Convert2( headModel.verts_[index0] ); 
+   // 	//Normalize(lightDir);
+
+   // 	Vector3 n = Cross( Convert2( headModel.verts_[index1] - headModel.verts_[index0] ), 
+   // 		               Convert2( headModel.verts_[index2] - headModel.verts_[index0] ) ) ;
+   // 	n = Normalize(n);
+
+   // 	//Vector3 normalAverage = model.vertices[index0].normal + model.vertices[index1].normal + model.vertices[index2].normal;
+   // 	//Normalize(normalAverage);
+
+   // 	float intensity =  Dot(  Normalize(lightPos2), n); 
+
+  	// if(intensity >= 0 )
+   // 	DrawBaryTriangle( ConvertNDCToScreen(  Convert2( headModel.verts_[index2]) ) , 
+			// 	      ConvertNDCToScreen( Convert2( headModel.verts_[index1]) ) , 
+			// 	      ConvertNDCToScreen( Convert2( headModel.verts_[index0]) ) ,
+			// 	      GetColor(  intensity ,  intensity,    intensity )  );
+    	
+	
+
+   // }
+    // for (int y = 0; y < bitmapHeight; ++y)
+    // {
+    // 	uint8 *pixel = (uint8 *) row;
+    // 	for (int x = 0; x < bitmapWidth; ++x)
+    // 	{
+    // 		// Pixel in meory: 00 00 00 00 little endian
+    // 		// RR GG BB xx
+    // 		// 0x 00 00 00 00 
+    // 		//0xxBBGGRR
+    // 		// swapped RRGGBB
+    // 		*pixel = (uint8) x; 
+    // 		++pixel; 
+
+    // 		*pixel = (uint8) y; 
+    // 		++pixel; 
+
+    // 		*pixel = 0 ;
+    // 		++pixel; 
+
+    // 		*pixel = 0; 
+    // 		++pixel;
+    // 	}
+    //     row += pitch;//Increment 32 to the next pixel
+
+    //}
+ }
+
+
+
+ /*Graphics Pipeline
+	- Verts are in local space (currently we are lucky in that the verts corespond to NDCs)
+	- Transform to World
+	- Transform to Camera
+	- Apply Perspective 
+	-
+
+ */
+
 //Device Inde Bitmap
 internal void  ResizeDIBSection(int width, int height){
 
@@ -735,107 +947,14 @@ internal void  ResizeDIBSection(int width, int height){
    //  DrawLineNDC( GetColor(.0f, 1.0f, 0.0f), 1.0f, -1.0f,  .0f, .0f); //errors out
 
 
-
-    int stride = 6; 
-    int count = ArrayCount( vertices) / stride; 
-    int realCount = ArrayCount(vertices);
-
-  Vector3 triangle[3] ; 
-  Vector3 flatTop[3]; 
-  Vector3 skewed[3]; 
-
-  uint32 colors[3];
- Vector3 colors24[3];
-
-    for (int i = 0; i < ArrayCount(vertices)-1; i+=stride)
-    {
-
-    	uint32 color = GetColor(vertices[i+3], vertices[i+4], vertices[i+5] ); 
-    	triangle[i / stride] =  Vector3( vertices[i], vertices[i+1], vertices[i+2] );  
-    	colors[ i / stride] = color;
-    	// triangle[i] = v1;[]
-
-    	colors24[i / stride].x = vertices[i+3]; 
-    	colors24[i / stride].y = vertices[i+4]; 
-    	colors24[i / stride].z = vertices[i+5]; 
-
-    	//DrawLineNDC(color,  vertices[i], vertices[i+1],  vertices[i+stride], vertices[i+1+stride]   );
-    	//DrawTriangle(color, Vector3(vertices[i], vertices[i+1] ), Vector3( vertices[i+stride], vertices[i+1+stride]) ); 
-    }
-
-    // Flat top triangle 
-    for (int i = 0; i < ArrayCount(topFlatVertices)-1; i+=stride)
-    {
-
-    	uint32 color = GetColor(topFlatVertices[i+3], topFlatVertices[i+4], topFlatVertices[i+5] ); 
-    	flatTop[i / stride] =  Vector3( topFlatVertices[i], topFlatVertices[i+1], topFlatVertices[i+2] );  
-    	colors[ i / stride] = color;
-    	// triangle[i] = v1;
-    	//DrawLineNDC(color,  vertices[i], vertices[i+1],  vertices[i+stride], vertices[i+1+stride]   );
-    	//DrawTriangle(color, Vector3(vertices[i], vertices[i+1] ), Vector3( vertices[i+stride], vertices[i+1+stride]) ); 
-    }
-
-    // Flat top triangle 
-    for (int i = 0; i < ArrayCount(polyVertices)-1; i+=stride)
-    {
-
-    	uint32 color = GetColor(polyVertices[i+3], polyVertices[i+4], polyVertices[i+5] ); 
-    	skewed[i / stride] =  Vector3( polyVertices[i], polyVertices[i+1], polyVertices[i+2] );  
-    	colors[ i / stride] = color;
-    	// triangle[i] = v1;
-    	//DrawLineNDC(color,  vertices[i], vertices[i+1],  vertices[i+stride], vertices[i+1+stride]   );
-    	//DrawTriangle(color, Vector3(vertices[i], vertices[i+1] ), Vector3( vertices[i+stride], vertices[i+1+stride]) ); 
-    }
-
-    uint32 color = GetColor(vertices[realCount-3], vertices[realCount-2], vertices[realCount-1] ); 
-   // DrawLineNDC(color,  vertices[realCount-6], vertices[realCount-5],  vertices[0], vertices[1]   );
-
-	//DrawTriangle( triangle[2], triangle[0],  triangle[1]);
-	// FillFlatBottomTriangle( ConvertNDCToScreen( triangle[2] ), ConvertNDCToScreen( triangle[0]),  ConvertNDCToScreen( triangle[1] )) ;
-	// FillFlatTopTriangle( ConvertNDCToScreen( flatTop[0] ), ConvertNDCToScreen( flatTop[1]),  ConvertNDCToScreen( flatTop[2] )) ;
-   
-
-    //Draw last Vert to First Vert
-
-    Vector3 lightDir = Vector3(0, 0, 1.0f);
-
-    int faceCount = model.indices.size() / 3;
-
-    for (int i = 0; i < model.vertices.size(); ++i)
-    {
-    	
-    	DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[i].position,   model.vertices[i+1].position );
-    }
-
-	for (int i = 0; i <  model.vertices.size();  i+= 3)
-   {
-   	int index0 = i;//  model.indices[i]; 
-   	int index1 = i+1; //model.indices[i+1];
-   	//int index2 = model.indices[i+2];  
-
-   	int index2 =  i+2; //model.indices[i + 2];
-   	int index3 = model.indices[i  + 3];
-   	//int index4 = model.indices[i  + 5];
-   	float intensity = Dot(model.vertices[index2].normal, lightDir ); 
-
-   	if(intensity > 0 )
-   	DrawBaryTriangle( ConvertNDCToScreen( model.vertices[index1].position + positionOffset), 
-				  ConvertNDCToScreen( model.vertices[index2].position + positionOffset), 
-				  ConvertNDCToScreen( model.vertices[index0].position + positionOffset),
-				  GetColor( intensity , intensity,  intensity) );
-    	
-	//DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[index0].position,   model.vertices[index1].position );
-	//DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[index1].position,   model.vertices[index2].position );
-	//DrawLineNDC(GetColor(1.0f,1.0f, 1.0f), model.vertices[index2].position,   model.vertices[index0].position );	
-
-    }
+    RenderUpdate();
 
           // DrawWireTriangle((skewed[2]), (, [0]), (skewed[1])) ; 
 
-    DrawBaryTriangle(ConvertNDCToScreen(triangle[2]),
-                 ConvertNDCToScreen(triangle[1]), 
-                 ConvertNDCToScreen(triangle[0]), 
-    	         colors24[2], colors24[1], colors24[0] ) ; 
+    // DrawBaryTriangle(ConvertNDCToScreen(triangle[2]),
+    //              ConvertNDCToScreen(triangle[1]), 
+    //              ConvertNDCToScreen(triangle[0]), 
+    // 	         colors24[2], colors24[1], colors24[0] ) ; 
 
 
 
@@ -926,7 +1045,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			RECT clientRect ;
 			GetClientRect(hwnd, &clientRect);
 			//PatBlt(DeviceContext, x, y, width, height, WHITENESS); 
-
+			//RenderUpdate();
 			WindowUpdate(DeviceContext, &clientRect,  x, y , width, height);
 
 
@@ -971,7 +1090,7 @@ int CALLBACK WinMain(
 	wc.hInstance   = Instance; 
 	wc.lpszClassName   = "Windows Test";
 
-	    model = LoadMeshOBJ("models/", "african_head.obj");
+	model = LoadMeshOBJ("models/", "african_head.obj");
 
 	
 	RegisterClass(&wc);
