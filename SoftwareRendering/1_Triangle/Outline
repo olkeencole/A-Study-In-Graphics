@@ -1,0 +1,64 @@
+
+
+What is a game engine? 
+
+Reality Capture and Virtual Pompeii
+
+AI Weighting
+
+Player Data and Representation
+
+Retail Modeling Summary
+ - In any sort of spatial layouting that attempts to dictate pr solicit a direction for user pathing, 
+ be it physical or virtual, retail or game, we can come up with all sorts of ideas as to how the user will respond to our 
+ well thought out layout, but you will never truly know until you actually see the user response. We cannot really predict what a player will do in a game or a shopper in a store until we actually see their responses. But we can learn to make better decisions once we have an establish set of user responses from past data that we can visualize and interpret. 
+
+
+What Is a Game Engine? 4 mins
+
+- Set of Libraries that unified nearly all the subsystems 
+of an operating systems into a synchronized render loop. 
+
+- It is important to note that an engine brings together many different subsystems of a computer. we tend to think of graphics for a game, but if a set of libries can only call into the GPU, then really we should call that a renderer, which many of the WebGL frameworks like Aframe and ThreeJS really are. 
+
+- Instead a game engine brings together much more than just graphics such as input, sound, video and perhaps even network connections. 
+
+- Traditionally, game engines have been  used for games since conventional AAA style games require nearly all of a computers
+resources. 
+
+- Nowadays, typical for a game engine to come with an editor, but 
+not necessarily required. 
+
+
+
+Reality Capture and Virtual Pompeii 2 mins
+-- As good researchers, our first mission is to collect and capture the data. 
+
+ - Samsung S7s - 12 MP f/1.7 1.4 micron
+ - Visited Pompeii in May and collected nearly 10,000 photos for photogrammetry purposes. 
+ - PhotoScan
+
+
+AI Weighting ? 4mins? 
+ - Using AI and Machine Learning, we can approach the walkthrough space in a variety of manners. 
+ - In a blunt game-like manner, AI can discern  the most efficient pathways across the space. 
+ - Potentially Visible Sets
+ - In another way, using collisional avoidance, we can simulate the interactions of crowds down narrow and broad passages, which can allow us to predict when other less efficient paths might become more efficient. 
+
+ - 
+
+Player Data Capture and Representation 3 mins
+ - Lines - get Zelda - Games, like Facebook and Google, are tracking you and know what you did last Summer. And yesterday. And this morning. 
+ - We want to know what users are actually doing in the space and what they are most likely to do in a given space so we can better design for the most optimal experience. 
+ s
+ - need a hell of a lot of that data in order to make hypotheses about future behaviour. 
+ - Need to be able to visualize and sort through that data in a variety of ways. 
+ - 
+
+Retail? Modeling 1 min
+
+Thank you for time and questions? 30 seconds
+
+
+4 2 4 3 1 30
+
