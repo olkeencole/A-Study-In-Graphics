@@ -10,7 +10,6 @@ $Notice:
   API :  OpenGL 
   DEMO:  BoxDemo
 
-
   The minimum lines of code needed to
   1: Initialize OpenGL from Windows
   2: Store a Cube as Vertex Information in GL Buffers
@@ -391,7 +390,7 @@ class Matrix4 {
 
 
 struct Camera {
-	Vector3 position = Vector3(0, 0,   5.0f); 
+	Vector3 position = Vector3(0,  0,   5.0f); 
 	Vector3 forward  = Vector3(0,  0, -1.0f); // what we are looking at// direction facing // or could think of it as rotation I suppose. 
 
 	float fieldOfView =  60.0f; 
@@ -502,6 +501,7 @@ float zRotation = 0;
   Vector3( 6.1f,  -1.43f, -7.5f) ,
   Vector3(-7.2f,  -1.2f, -7.5f)
  };
+ 
  Vector3 modelPosition = Vector3(.1f, 0, 0);
 
 

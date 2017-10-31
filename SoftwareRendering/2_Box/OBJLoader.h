@@ -28,14 +28,13 @@ const int OBJ_USEMTL   = 7;
 	string text; Stores the read file in a string 
 	fstream file; stores the file data
 	stringstream ; process the string from the file | intermediary between file and string 
-
-
 */
 
 struct Vertex
 {
 	Vector3 position; 
 	Vector3 normal; 
+	Vector3 color;
 	Vector2 uv; 
 };
 

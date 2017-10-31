@@ -65,112 +65,93 @@ float verts[] = {
 }; 
 
 
-// Shaders
-// Just displays pos in NDC and colors
-const char* vertexShader = 
-	"#version 330 core\n"
-	"layout (location = 0) in vec3 verts;\n" 
-	"layout (location = 1) in vec3 vColor;\n"
-	"out vec3 color;\n" 
+ Vector3 mPositions[] = {
+  Vector3( 0.0f,  0.0f,  0.0f), 
+  Vector3( 2.0f,  5.0f, -15.0f), 
+  Vector3(-1.5f, -2.2f, -2.5f),  
+  Vector3(-3.8f, -2.0f, -12.3f),  
+  Vector3( 2.4f, -0.4f, -3.5f),  
+  Vector3(-1.7f,  3.0f, -7.5f),  
+  Vector3( 1.3f, -2.0f, -2.5f),  
+  Vector3( 1.5f,  2.0f, -2.5f), 
+  Vector3( 1.5f,  0.2f, -1.5f), 
+  Vector3(-1.3f,  1.0f, -1.5f),
 
-	"void main() { \n"
-		"gl_Position = vec4(verts.x, verts.y, verts.z, 1.0);\n"
-		"color = vColor;\n"
-	"}\n\0" ;
+  Vector3(-3.7f,  3.0f, -7.5f),  
+  Vector3( 3.3f, -2.0f, -2.5f),  
+  Vector3( 4.5f,  4.0f, -8.5f), 
+  Vector3( -4.5f,  5.2f, -9.5f), 
+  Vector3(-3.3f,  -5.0f, -15.5f),
 
-const char* fragmentShader = 
-	"in vec3 color;\n"
-	"void main(){\n"
-		"gl_FragColor = vec4(color, 1.0);\n" 
-	"}\n\0";
+  Vector3(-1.7f, -3.0f, -7.5f),  
+  Vector3( 1.3f, -2.0f, -2.5f),  
+  Vector3( 4.5f, -4.0f, -4.5f), 
+  Vector3( 2.5f,  4.2f, -7.5f), 
+  Vector3(-2.3f,  -5.0f, -7.5f),
+
+  Vector3(-4.7f, -3.3f,  -7.5f),  
+  Vector3( 2.332f, -2.6f, -3.5f),  
+  Vector3( 3.2f, -2.7f, -4.5f), 
+  Vector3(-3.5f,  3.2f, -7.5f), 
+  Vector3(-2.3f,  -2.43f, -7.5f) ,
+
+  Vector3( 6.0f,  0.7f, -4.5f), 
+  Vector3(-5.5f,  -0.2f, -7.5f), 
+  Vector3( 6.1f,  -1.43f, -7.5f) ,
+  Vector3(-7.2f,  -1.2f, -7.5f)
+ };
+
+
+// Vertice Data for for a Cube
+// Vertex Infomation with Position and Color Stored in the Vertices
+float Cube_Color[] = {
+    // Vert Position          // Color          
+    -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 0.0f,  
+     0.5f, -0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, 1.0f,  
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, 1.0f,  
+    -0.5f,  0.5f, -0.5f,  1.0f,  0.0f, 0.0f,  
+    -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 0.0f,  
+
+    -0.5f, -0.5f,  0.5f,  1.0f,  1.0f, 0.0f,   
+     0.5f, -0.5f,  0.5f,  0.0f,  1.0f, 0.0f,   
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   
+    -0.5f,  0.5f,  0.5f,  1.0f,  0.0f, 0.0f,   
+    -0.5f, -0.5f,  0.5f,  1.0f,  1.0f, 0.0f,   
+
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f, 1.0f,  
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  
+    -0.5f, -0.5f, -0.5f,  1.0f,  0.0f, 1.0f,  
+    -0.5f, -0.5f, -0.5f,  1.0f,  0.0f, 1.0f,  
+    -0.5f, -0.5f,  0.5f,  1.0f,  1.0f, 0.0f,  
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f, 1.0f,  
+
+     0.5f,  0.5f,  0.5f,  1.0f,  1.0f, 0.0f,  
+     0.5f,  0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  
+     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, 1.0f,  
+     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, 1.0f,  
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f, 0.0f,  
+     0.5f,  0.5f,  0.5f,  1.0f,  1.0f, 0.0f,  
+
+    -0.5f, -0.5f, -0.5f,  0.0f,  1.0f, 1.0f,  
+     0.5f, -0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f, 1.0f,  
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f, 1.0f,  
+    -0.5f, -0.5f,  0.5f,  1.0f,  1.0f, 0.0f,  
+    -0.5f, -0.5f, -0.5f,  0.0f,  1.0f, 1.0f,  
+
+    -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 0.0f, 
+     0.5f,  0.5f, -0.5f,  0.0f,  1.0f, 0.0f, 
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 
+    -0.5f,  0.5f,  0.5f,  1.0f,  0.0f, 0.0f, 
+    -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 0.0f
+};
 
 
 Vector3 positionOffset; 
-
-//WGL CONSTANTS FLAGS
-//
-#define WGL_CONTEXT_MAJOR_VERSION_ARB           	0x2091
-#define WGL_CONTEXT_MINOR_VERSION_ARB           	0x2092
-#define WGL_CONTEXT_LAYER_PLANE_ARB             	0x2093
-#define WGL_CONTEXT_FLAGS_ARB                   	0x2094
-#define WGL_CONTEXT_PROFILE_MASK_ARB            	0x9126
-#define WGL_CONTEXT_DEBUG_BIT_ARB               	0x0001
-#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB     0x0002
-#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB           0x00000001
-#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB  0x00000002
-#define ERROR_INVALID_VERSION_ARB                  0x2095
-#define ERROR_INVALID_PROFILE_ARB                  0x2096
-
-
-
-//OPENGL CONSTANT FLAGS
-	//
-#define GL_ARRAY_BUFFER                   0x8892
-#define GL_STATIC_DRAW                    0x88E4
-
-#define GL_VERTEX_SHADER                  0x8B31
-#define GL_FRAGMENT_SHADER                0x8B30
-
-#define GL_COMPILE_STATUS                 0x8B81
-#define GL_LINK_STATUS                    0x8B82
-
-
- 
-// OPENGL FUNCTION POINTER TYPE DEFINITIONS
-//	
-typedef ptrdiff_t GLsizeiptr;
-typedef char GLchar;
-
-typedef HGLRC WINAPI wgl_create_attrib_arb(HDC hdc, HGLRC sharedContext, const int *attribs );
-
-typedef void WINAPI gl_GenVertexArrays (GLsizei n, GLuint *arrays);
-typedef void WINAPI gl_GenBuffers (GLsizei n, GLuint *buffers);
-typedef void WINAPI gl_BindVertexArray (GLuint array);
-typedef void WINAPI gl_BindBuffer (GLenum target, GLuint buffer);
-typedef void WINAPI gl_BufferData (GLenum target, GLsizeiptr size, const void *data, GLenum usage);
-typedef void WINAPI gl_VertexAttribPointer (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
-typedef void WINAPI gl_EnableVertexAttribArray (GLuint index);
-
-typedef void   WINAPI gl_CompileShader (GLuint shader);
-typedef GLuint WINAPI gl_CreateProgram (void);
-typedef GLuint WINAPI gl_CreateShader  (GLenum type);
-typedef void   WINAPI gl_DeleteShader  (GLuint shader);
-typedef void   WINAPI gl_ShaderSource  (GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length);
-typedef void   WINAPI gl_AttachShader  (GLuint program, GLuint shader);
-typedef void   WINAPI gl_LinkProgram   (GLuint program);
-typedef void   WINAPI gl_UseProgram    (GLuint program);
-
-typedef void  WINAPI gl_GetProgramiv      (GLuint program, GLenum pname, GLint *params);
-typedef void  WINAPI gl_GetProgramInfoLog (GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
-typedef void  WINAPI gl_GetShaderiv       (GLuint shader, GLenum pname, GLint *params);
-typedef void  WINAPI gl_GetShaderInfoLog  (GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
-
-
-
-// FUNCTION POINTER DECLARATIONS
-//
-gl_GenVertexArrays  		*glGenVertexArrays;
-gl_BindVertexArray  		*glBindVertexArray; 
-gl_GenBuffers       		*glGenBuffers; 
-gl_BindBuffer       		*glBindBuffer; 
-gl_BufferData       		*glBufferData; 
-gl_VertexAttribPointer		*glVertexAttribPointer; 
-gl_EnableVertexAttribArray  *glEnableVertexAttribArray;
-
-gl_AttachShader   *glAttachShader ;  
-gl_CompileShader  *glCompileShader;  
-gl_CreateProgram  *glCreateProgram;  
-gl_CreateShader   *glCreateShader ;  
-gl_DeleteShader   *glDeleteShader ;  
-gl_ShaderSource   *glShaderSource ;  
-gl_LinkProgram    *glLinkProgram  ;  
-gl_UseProgram     *glUseProgram   ;  
-
-gl_GetProgramiv       *glGetProgramiv      ;
-gl_GetProgramInfoLog  *glGetProgramInfoLog ;
-gl_GetShaderiv        *glGetShaderiv       ;
-gl_GetShaderInfoLog   *glGetShaderInfoLog  ;
-
+uint32 *zBuffer;
 
 
 /// GLOBALS
@@ -178,87 +159,7 @@ gl_GetShaderInfoLog   *glGetShaderInfoLog  ;
 static HGLRC GlobalRenderContext; 
 static int WindowWidth  = 800; 
 static int WindowHeight = 600; 
-static GLuint VAO,VBO, Shader; 
 
-
-// Store Vertex Data In Buffer In GPU
-//
-void InitOpenGL()
-{
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts,  GL_STATIC_DRAW ); //6
-
-	int index = 6; 
-	glVertexAttribPointer(0 , 3,  GL_FLOAT, GL_FALSE, sizeof(float) * index ,   (void *) 0); //6 
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1 , 3,  GL_FLOAT, GL_FALSE, sizeof(float) * index ,   (void *) ( 3 * sizeof(float) ) ); //6 
-	glEnableVertexAttribArray(1);
-
-	glBindVertexArray(0);
-
- } 
-
-
-
-// Compile Shader and Store in GPU Buffer
-//
- void InitShader()
- {
- 	//Debuging
- 	char log[512]; 
- 	int success;
- 	GLuint vertex, frag, shader; 
-
- 	vertex = glCreateShader(GL_VERTEX_SHADER); 
- 	glShaderSource(vertex, 1, &vertexShader, NULL); //4 id, count, shader text, null < length
- 	glCompileShader( vertex);// just takes the idea
-	glGetShaderiv( vertex, GL_COMPILE_STATUS, &success);
-	 
- 	//if(!success)
- 	{
- 		glGetShaderInfoLog(vertex, 512, NULL, log); // //shader, log limit, dnull, charlog)
- 		std::cout << "SHADER ERROR: " << log << std::endl;
- 	}
-
- 	frag = glCreateShader(GL_FRAGMENT_SHADER);
- 	glShaderSource( frag, 1, &fragmentShader, NULL);
- 	glCompileShader(frag); 
-
- 	shader = glCreateProgram();
- 	glAttachShader(shader, vertex);
- 	glAttachShader(shader, frag);
- 	glLinkProgram(shader); 
-	glGetProgramiv(shader, GL_LINK_STATUS, &success );
- 	
- 	//if( !success)
- 	{
- 		glGetProgramInfoLog( shader, 512, NULL, log );
- 		std::cout << "LINKING ERROR: " << log << std::endl;
- 	}
-
- 	glDeleteShader(vertex); 
- 	glDeleteShader(frag);  
-
- 	Shader = shader;
- }
-
-
-// Draw with OpenGLCore
-//
- void RenderOpenGLContext(GLuint shader)
- {
- 	glUseProgram(shader); 
-
- 	glBindVertexArray(VAO);
- 	glDrawArrays( GL_TRIANGLES, 0 , 3 );
-
- 	glBindVertexArray(0);
- }
 
 
 
@@ -374,6 +275,7 @@ bool CheckRangeNDC(float x1)
 
 int NDCXToScreenPixel( float xNDC) {
     int width = bitmapWidth-1; 
+    xNDC = Clamp(xNDC, -1, 1);
 	int xPixel = ( (( (xNDC + 1.0f)  )) ) *  ( width  / 2.0f); 
 
 	return xPixel;
@@ -381,6 +283,7 @@ int NDCXToScreenPixel( float xNDC) {
 
 int NDCYToScreenPixel( float yNDC) {
 	int height = bitmapHeight-1;
+	yNDC = Clamp(yNDC, -1, 1);
 	int yPixel = ( (( 2.0f - (yNDC + 1.0f)    )) ) * (height / 2.0f); 
 
 	return yPixel;
@@ -716,6 +619,65 @@ void DrawBaryTriangle(   const Vector3 &v1, const Vector3 &v2, const Vector3 &v3
  	return result;
  }
 
+//Now need to transform model - view - perspective
+Vector3 MVP_Transform( Vector3 v){
+
+	Vector3 result = Vector3(0,0,0); 
+	Vector4 interim = Vector4(v.x, v.y, v.z, 1.0f);
+	Vector4 interimResult = Vector4();
+	/*What do we need? 
+	 Model Transform (position, rotation and scale)
+	 Camera Transform (convert to view)
+	 Camera "lense" info (fov, near and far)
+	*/
+
+	//Look at barycentric again
+
+	Matrix4 mod  = Matrix4();
+	
+	//mod.Translate(positionOffset.x, .2, .2);
+    mod = mod.RotateZAxis( positionOffset.x);
+	
+	Matrix4 view = LookAt( Vector3(0,0, -5.0f), Vector3(0,0,0), Vector3(0,1,0)  );
+	Matrix4 proj = Perspective( 80.0f, WindowWidth/WindowHeight, .1f, 10.0f); 
+
+	Matrix4 mvp =  proj * view * mod; //Double check matrix mult
+	
+	interimResult  = mvp * interim;	
+	float divide   = interimResult.w; 
+
+	result = Vector3( interimResult.x / divide, interimResult.y / divide,  interimResult.z );
+
+	//Now also need NDC matrix for formulas or clipping space
+	//Also, do I want to do clipping? 
+	return result;
+
+}
+
+internal void
+WindowUpdate(HDC hdc, RECT *windowRect, int x, int y, int width, int height) {
+
+	int windowWidth  = windowRect->right  - windowRect->left;
+	int windowHeight = windowRect->bottom - windowRect->top; 
+	StretchDIBits( hdc, /*x, y, width, height,
+					    x, y, width, height, */
+						0, 0, bitmapWidth, bitmapHeight, 
+						0, 0, windowWidth, windowHeight,
+					    BitmapMemory, 
+					    &bitmapInfo, 
+						DIB_RGB_COLORS, SRCCOPY);  
+}
+
+void UpdateWindow(HDC hdc){
+	StretchDIBits( hdc, /*x, y, width, height,
+					    x, y, width, height, */
+						0, 0, bitmapWidth, bitmapHeight, 
+						0, 0, bitmapWidth, bitmapHeight,
+					    BitmapMemory, 
+					    &bitmapInfo, 
+						DIB_RGB_COLORS, SRCCOPY); 
+}
+
  void RenderUpdate(){
 
     int stride = 6; 
@@ -816,12 +778,51 @@ void DrawBaryTriangle(   const Vector3 &v1, const Vector3 &v2, const Vector3 &v3
 
           // DrawWireTriangle((skewed[2]), (, [0]), (skewed[1])) ; 
 
-    DrawBaryTriangle(ConvertNDCToScreen(triangle[2]),
-                 ConvertNDCToScreen(triangle[1]), 
-                 ConvertNDCToScreen(triangle[0]), 
-    	         colors24[2], colors24[1], colors24[0] ) ; 
+    // DrawBaryTriangle(ConvertNDCToScreen(triangle[2]),
+    //              ConvertNDCToScreen(triangle[1]), 
+    //              ConvertNDCToScreen(triangle[0]), 
+    // 	         colors24[2], colors24[1], colors24[0] ) ; 
 
 
+//Create Vertex or Mesh
+    
+    const int pitch = 6;
+    const int vCount = (ArrayCount(Cube_Color) ) / pitch ;
+    Vertex vertices[vCount];
+
+
+for (int i = 0; i < ArrayCount(Cube_Color) ; i+=6)
+{
+	int index  = i;
+
+	if( index > 0)
+		index = index / 6;
+
+	int index1 = i+1; 
+	int index2 = i+2; 
+
+	int color1 = i+3;
+	int color2 = i+4;
+	int color3 = i+5;
+
+	vertices[index].position.x = Cube_Color[ i ];
+	vertices[index].position.y = Cube_Color[ index1 ];
+	vertices[index].position.z = Cube_Color[ index2 ];
+
+	vertices[index].color = Vector3 (Cube_Color[ color1 ],  Cube_Color[ color2 ], Cube_Color[ color3 ]);
+}
+
+
+
+//Process Vertex List
+for (int i = 0; i < vCount	; i+=3)
+{
+
+	DrawBaryTriangle(ConvertNDCToScreen(   MVP_Transform(  vertices[i+2].position) ),
+                     ConvertNDCToScreen(   MVP_Transform(  vertices[i+1].position) ), 
+                     ConvertNDCToScreen(   MVP_Transform(  vertices[i+0].position) ), 
+    	             vertices[i+2].color, vertices[i+1].color,  vertices[i+0].color) ; 
+}
 
    //  Model headModel = Model("models/african_head.obj");
    //  Vector3 lightPos2 = Vector3(0,0, 5.0f);
@@ -924,6 +925,8 @@ internal void  ResizeDIBSection(int width, int height){
     uint8 *row = (uint8 *) BitmapMemory; 
     int pitch  = width * BytesPersPixel; 
 
+    zBuffer = new uint32[width * height];
+
    // DrawPixel(11111111, width-1, height-1);
     // DrawSquare( GetColor(1.0f, 0.0f, .0f), 0, 0, bitmapWidth, bitmapHeight);
     // DrawSquare( GetColor(.0f, .0f, 1.0f), 100, 100, 300, 300); 
@@ -947,7 +950,7 @@ internal void  ResizeDIBSection(int width, int height){
    //  DrawLineNDC( GetColor(.0f, 1.0f, 0.0f), 1.0f, -1.0f,  .0f, .0f); //errors out
 
 
-    RenderUpdate();
+   // RenderUpdate();
 
           // DrawWireTriangle((skewed[2]), (, [0]), (skewed[1])) ; 
 
@@ -992,19 +995,7 @@ internal void  ResizeDIBSection(int width, int height){
  -  Convert pixels to NDC coordinates
 
 */
-internal void
-WindowUpdate(HDC hdc, RECT *windowRect, int x, int y, int width, int height) {
 
-	int windowWidth  = windowRect->right  - windowRect->left;
-	int windowHeight = windowRect->bottom - windowRect->top; 
-	StretchDIBits( hdc, /*x, y, width, height,
-					    x, y, width, height, */
-						0, 0, bitmapWidth, bitmapHeight, 
-						0, 0, windowWidth, windowHeight,
-					    BitmapMemory, 
-					    &bitmapInfo, 
-						DIB_RGB_COLORS, SRCCOPY);  
-}
 
 
 // Windows Message Callback
@@ -1062,12 +1053,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 			if(wParam == VK_RIGHT || wParam =='D')
 			{
-				positionOffset.x += .01f;
+				positionOffset.x += .2;
 
 			}else
 			if(wParam == VK_LEFT || wParam =='A')
 			{
-				positionOffset.x -= .01f;
+				positionOffset.x -= .2;
 			}
 		}break;
 		return 0;
@@ -1092,6 +1083,7 @@ int CALLBACK WinMain(
 
 	model = LoadMeshOBJ("models/", "african_head.obj");
 
+	bool isRunning = true;
 	
 	RegisterClass(&wc);
 	//Create Window	
@@ -1106,14 +1098,24 @@ int CALLBACK WinMain(
 
 	ShowWindow(WindowHandle, WindowShow);
 
-	MSG msg = {}; 
-	//PostMessage
-	while( GetMessage( &msg, NULL, 0, 0))  
-	{
-		TranslateMessage(&msg); 
-		DispatchMessage( &msg); 
-	}
+	while(isRunning) {
+	
+		MSG msg ; 
 
+		if(PeekMessage(&msg, 0, 0 , 0, PM_REMOVE)) {
+
+			if(msg.message == WM_QUIT){
+				isRunning = false;
+			}
+
+			TranslateMessage(&msg); 
+			DispatchMessage( &msg);
+		}
+
+		DrawSquare(GetColor(0,0,0), 0, 0, bitmapWidth-1, bitmapHeight-1);
+		RenderUpdate();
+		UpdateWindow( GetDC(WindowHandle));
+	}
 
 	return 0;
 }

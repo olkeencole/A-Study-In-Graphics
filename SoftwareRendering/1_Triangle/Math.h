@@ -221,6 +221,27 @@ class Matrix4 {
 	    m[1] = m[2] = m[3]  = m[4]  = m[6] = m[7] = m[8] = m[9] = m[11] = m[12] = m[13] = m[14] = 0.0f;
 	} 
 
+	Vector3 operator*(Matrix4 &m, Vector3 &v) {
+		Vector3 result = Vector3();
+
+		//First row of matrix down through the vector
+		result.x = m.m[0] * v.x + m.m[1] * v.y + m.m[2] * v.z  + m.m[3]  * 0.0f;
+		result.y = m.m[4] * v.x + m.m[5] * v.y + m.m[6] * v.z  + m.m[7]  * 0.0f;
+		result.z = m.m[8] * v.x + m.m[9] * v.y + m.m[10] * v.z + m.m[11] * 0.0f;
+		return result;	
+	}
+
+/*
+
+R2T7692B00533
+		A B C D  1, 2, 3
+*/
+	Matrix4 operator*(Matrix4 &m1, Matrix4 &m2){
+
+		return Multiply( m1, m2);
+	}
+	 
+
 	//TODO(keenan): Run tests and makes ure there's no glitch here
 	Matrix4 Multiply(Matrix4 &m1, Matrix4 &m2)
 	{	
@@ -287,6 +308,9 @@ class Matrix4 {
 
 		return Multiply( start , r);
 	}
+
+
+	Vector3 
 
 
 	void Scale(float x, float y, float z){
