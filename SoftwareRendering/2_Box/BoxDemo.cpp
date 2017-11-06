@@ -12,15 +12,20 @@ $Notice:
    - As simple as a script can be initializing the Windows API and using
    it to render a simple triangle from some vertices
 
+   Interactive Computer Graphics - A Top-Down Approach, 2012, E. Angel & D.Shreiner
+Introduction to Computer Graphics course, M. Pauly, EPFL 2015
+How OpenGL works, D. V. Sokolov, available at github.com/ssloy/tinyrenderer
+Triangle rasterization in practice and the following posts, F. Giesen, available here
+Rasterization: a Practical Implementation, , available at scratchapixel.com
+How to write a (software) 3d polygon pipeline, C. Bloom, available here
+
 */ 
 #include <Windows.h>
-#include <GL/GL.h>
 #include <iostream>
 #include <stdint.h>
 #include "OBJLoader.h"
 #include "model.cpp"
 using namespace std;
-
 
 #define Assert(Expression) if(! ( Expression)) { *(int *)0 = 0; }
 
@@ -28,8 +33,6 @@ using namespace std;
 #define PI 3.14
 #define DEG2RAD ((PI ) / 180.0f) 
 #define ArrayCount(value) ( sizeof(value) / sizeof(value[0] ) ) //Length of an Array
-
-
 
 #define internal        static // can only be used in its translation unit (file)
 #define local_persist   static 
@@ -159,8 +162,6 @@ uint32 *zBuffer;
 static HGLRC GlobalRenderContext; 
 static int WindowWidth  = 800; 
 static int WindowHeight = 600; 
-
-
 
 
 global_variable BITMAPINFO bitmapInfo; 

@@ -24,7 +24,29 @@ public:
 	}
 
 };
+
 //Vector3
+
+struct Vector4{
+public:
+	float x,y,z, w;
+	Vector4(){
+		x = 0;
+		y = 0;
+		z = 0;
+		w = 0;
+	}
+
+	Vector4(float nx, float ny, float nz, float nw) {
+		x = nx;
+		y = ny; 
+		z = nz; 
+		w = nw;
+	} 
+
+
+};
+
 struct Vector3
 {
     public: 
@@ -221,29 +243,14 @@ class Matrix4 {
 	    m[1] = m[2] = m[3]  = m[4]  = m[6] = m[7] = m[8] = m[9] = m[11] = m[12] = m[13] = m[14] = 0.0f;
 	} 
 
-	Vector3 operator*(Matrix4 &m, Vector3 &v) {
-		Vector3 result = Vector3();
+	
 
-		//First row of matrix down through the vector
-		result.x = m.m[0] * v.x + m.m[1] * v.y + m.m[2] * v.z  + m.m[3]  * 0.0f;
-		result.y = m.m[4] * v.x + m.m[5] * v.y + m.m[6] * v.z  + m.m[7]  * 0.0f;
-		result.z = m.m[8] * v.x + m.m[9] * v.y + m.m[10] * v.z + m.m[11] * 0.0f;
-		return result;	
-	}
 
-/*
 
-R2T7692B00533
-		A B C D  1, 2, 3
-*/
-	Matrix4 operator*(Matrix4 &m1, Matrix4 &m2){
-
-		return Multiply( m1, m2);
-	}
 	 
 
 	//TODO(keenan): Run tests and makes ure there's no glitch here
-	Matrix4 Multiply(Matrix4 &m1, Matrix4 &m2)
+	static Matrix4 Multiply(Matrix4 &m1, Matrix4 &m2)
 	{	
 		Matrix4 result = Matrix4(); 
 		
@@ -310,7 +317,7 @@ R2T7692B00533
 	}
 
 
-	Vector3 
+	
 
 
 	void Scale(float x, float y, float z){
@@ -332,6 +339,34 @@ R2T7692B00533
 		m[14] = v.z;
 	}
 }; 
+
+
+Matrix4 operator*(Matrix4 &m, Matrix4 &m1){
+	return Matrix4::Multiply(m, m1);
+}
+
+// Vector3 operator*(Matrix4 &m, Vector3 &v) {
+// 		Vector3 result = Vector3();
+
+// 		//First row of matrix down through the vector
+// 		result.x = m.m[0] * v.x + m.m[1] * v.y + m.m[2]  * v.z  + m.m[3]  * 0.0f;
+// 		result.y = m.m[4] * v.x + m.m[5] * v.y + m.m[6]  * v.z  + m.m[7]  * 0.0f;
+// 		result.z = m.m[8] * v.x + m.m[9] * v.y + m.m[10] * v.z  + m.m[11] * 0.0f;
+// 		return result;	
+// }
+
+
+Vector4 operator*(Matrix4 &m, Vector4 &v) {
+		Vector4 result = Vector4();
+
+		//First row of matrix down through the vector
+		result.x = m.m[0]  * v.x +   m.m[4]  * v.y    + m.m[8]     * v.z   + m.m[12]   * v.w;
+		result.y = m.m[1]  * v.x +   m.m[5]  * v.y    + m.m[9]     * v.z   + m.m[13]   * v.w;
+		result.z = m.m[2]  * v.x +   m.m[6]  * v.y    + m.m[10]    * v.z   + m.m[14]   * v.w;
+		result.w = m.m[3]  * v.x +   m.m[7]  * v.y    + m.m[11]    * v.z   + m.m[15]   * v.w;
+		return result;	
+}
+
 
 // UTILITY FUNCTIONS
 
@@ -358,7 +393,7 @@ void PrintVector( Vector3 v) {
 
 Matrix4 LookAt(Vector3 pos, Vector3 target, Vector3 up) {
 
-	Vector3 facing  = Normalize( pos - target);  // why not center eye?	
+	Vector3 facing  = Normalize(  pos - target);  // why not center eye?	
 	Vector3 right   = Normalize( Cross(up, facing));    // does order matter?
 	Vector3 localUp = Normalize( Cross( right, facing)); 
 
@@ -379,6 +414,18 @@ float Lerp( float a, float b, float index) {
 	return ( a + (b-a) * index ); 
 }
 
+
+float Clamp(float value, float min, float max){
+
+	float result = value;
+	if(value < min)
+		result = min;
+
+	if(value > max)
+		result = max;
+
+	return result;
+}
 
 
 // Matrix4 LookAt(Vector3 pos, Vector3 target, Vector3 up) {
