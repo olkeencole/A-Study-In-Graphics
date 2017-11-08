@@ -244,13 +244,36 @@ class Matrix4 {
 	} 
 
 	
-
-
-
-	 
-
 	//TODO(keenan): Run tests and makes ure there's no glitch here
-	static Matrix4 Multiply(Matrix4 &m1, Matrix4 &m2)
+	static Matrix4 Multiply(Matrix4 &m2, Matrix4 &m1)
+	{	
+		Matrix4 result = Matrix4(); 
+		
+		result.m[0]  = m1.m[0] * m2.m[0]    + m1.m[1] * m2.m[4]    + m1.m[2] * m2.m[8]     + m1.m[3] * m2.m[12]; 
+		result.m[1]  = m1.m[0] * m2.m[1]    + m1.m[1] * m2.m[5]    + m1.m[2] * m2.m[9]     + m1.m[3] * m2.m[13]; 
+		result.m[2]  = m1.m[0] * m2.m[2]    + m1.m[1] * m2.m[6]    + m1.m[2] * m2.m[10]    + m1.m[3] * m2.m[14]; 
+		result.m[3]  = m1.m[0] * m2.m[3]    + m1.m[1] * m2.m[7]    + m1.m[2] * m2.m[11]    + m1.m[3] * m2.m[15]; 
+
+		result.m[4]  = m1.m[4] * m2.m[0]  +   m1.m[5] * m2.m[4]    + m1.m[6] * m2.m[8]     + m1.m[7] * m2.m[12];
+		result.m[5]  = m1.m[4] * m2.m[1]  +   m1.m[5] * m2.m[5]    + m1.m[6] * m2.m[9]     + m1.m[7] * m2.m[13];
+		result.m[6]  = m1.m[4] * m2.m[2]  +   m1.m[5] * m2.m[6]    + m1.m[6] * m2.m[10]    + m1.m[7] * m2.m[14];
+		result.m[7]  = m1.m[4] * m2.m[3]  +   m1.m[5] * m2.m[7]    + m1.m[6] * m2.m[11]    + m1.m[7] * m2.m[15];
+
+		result.m[8]  = m1.m[8] *  m2.m[0]  +   m1.m[9] * m2.m[4]  +  m1.m[10] * m2.m[8]  +  m1.m[11] * m2.m[12];
+		result.m[9]  = m1.m[8] *  m2.m[1]  +   m1.m[9] * m2.m[5]  +  m1.m[10] * m2.m[9]  +  m1.m[11] * m2.m[13];
+		result.m[10] = m1.m[8] *  m2.m[2]  +   m1.m[9] * m2.m[6]  +  m1.m[10] * m2.m[10]  + m1.m[11] * m2.m[14];
+		result.m[11] = m1.m[8] *  m2.m[3]  +   m1.m[9] * m2.m[7]  +  m1.m[10] * m2.m[11]  + m1.m[11] * m2.m[15];
+
+		result.m[12] = m1.m[12] * m2.m[0]  +  m1.m[13] * m2.m[4]  +  m1.m[14] * m2.m[8]  +   m1.m[15] * m2.m[12];
+		result.m[13] = m1.m[12] * m2.m[1]  +  m1.m[13] * m2.m[5]  +  m1.m[14] * m2.m[9]  +   m1.m[15] * m2.m[13];
+		result.m[14] = m1.m[12] * m2.m[2]  +  m1.m[13] * m2.m[6]  +  m1.m[14] * m2.m[10]  +  m1.m[15] * m2.m[14];
+		result.m[15] = m1.m[12] * m2.m[3]  +  m1.m[13] * m2.m[7]  +  m1.m[14] * m2.m[11]  +  m1.m[15] * m2.m[15];
+
+	    return result;
+	}
+
+		//TODO(keenan): Run tests and makes ure there's no glitch here
+	static Matrix4 MultiplyTest(Matrix4 &m1, Matrix4 &m2)
 	{	
 		Matrix4 result = Matrix4(); 
 		
@@ -367,7 +390,16 @@ Vector4 operator*(Matrix4 &m, Vector4 &v) {
 		return result;	
 }
 
+// Vector4 operator*(Matrix4 &m, Vector4 &v) {
+// 		Vector4 result = Vector4();
 
+// 		//First row of matrix down through the vector
+// 		result.x = m.m[0]  * v.x +   m.m[1]  * v.y    + m.m[2]     * v.z   + m.m[3]   * v.w;
+// 		result.y = m.m[4]  * v.x +   m.m[5]  * v.y    + m.m[6]     * v.z   + m.m[7]   * v.w;
+// 		result.z = m.m[8]  * v.x +   m.m[9]  * v.y    + m.m[10]    * v.z   + m.m[11]   * v.w;
+// 		result.w = m.m[12]  * v.x +  m.m[13]  * v.y    + m.m[14]   * v.z   + m.m[15]   * v.w;
+// 		return result;	
+// }
 // UTILITY FUNCTIONS
 
 Matrix4 Perspective( float fov, float aspectRatio,  float n, float f) {
@@ -395,7 +427,7 @@ Matrix4 LookAt(Vector3 pos, Vector3 target, Vector3 up) {
 
 	Vector3 facing  = Normalize(  pos - target);  // why not center eye?	
 	Vector3 right   = Normalize( Cross(up, facing));    // does order matter?
-	Vector3 localUp = Normalize( Cross( right, facing)); 
+	Vector3 localUp = Normalize( Cross( facing, right)); 
 
 	Matrix4 result = Matrix4();
 
