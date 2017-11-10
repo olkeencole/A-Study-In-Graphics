@@ -241,7 +241,7 @@ float Cube_Color[] = {
 void InitializeOpenGLBuffers()
 {
 	glEnable(GL_DEPTH_TEST);  
-
+	glEnable(GL_CULL_FACE);
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 
