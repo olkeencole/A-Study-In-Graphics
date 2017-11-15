@@ -105,51 +105,50 @@ float verts[] = {
  };
 
 
+
+// Vertice Data for for a Cube
+// Vertex Infomation with Position and Color Stored in the Vertices
+
 // Vertice Data for for a Cube
 // Vertex Infomation with Position and Color Stored in the Vertices
 float Cube_Color[] = {
     // Vert Position          // Color          
-    -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 0.0f,  
-     0.5f, -0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, 1.0f,  
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, 1.0f,  
-    -0.5f,  0.5f, -0.5f,  1.0f,  0.0f, 0.0f,  
-    -0.5f, -0.5f, -0.5f,  1.0f,  1.0f, 0.0f,  
-
-    -0.5f, -0.5f,  0.5f,  1.0f,  1.0f, 0.0f,   
-     0.5f, -0.5f,  0.5f,  0.0f,  1.0f, 0.0f,   
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   
-    -0.5f,  0.5f,  0.5f,  1.0f,  0.0f, 0.0f,   
-    -0.5f, -0.5f,  0.5f,  1.0f,  1.0f, 0.0f,   
-
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f, 1.0f,  
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  
-    -0.5f, -0.5f, -0.5f,  1.0f,  0.0f, 1.0f,  
-    -0.5f, -0.5f, -0.5f,  1.0f,  0.0f, 1.0f,  
-    -0.5f, -0.5f,  0.5f,  1.0f,  1.0f, 0.0f,  
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f, 1.0f,  
-
-     0.5f,  0.5f,  0.5f,  1.0f,  1.0f, 0.0f,  
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, 1.0f,  
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, 1.0f,  
-     0.5f, -0.5f,  0.5f,  1.0f,  0.0f, 0.0f,  
-     0.5f,  0.5f,  0.5f,  1.0f,  1.0f, 0.0f,  
-
-    -0.5f, -0.5f, -0.5f,  0.0f,  1.0f, 1.0f,  
-     0.5f, -0.5f, -0.5f,  0.0f,  1.0f, 0.0f,  
-     0.5f, -0.5f,  0.5f,  1.0f,  0.0f, 1.0f,  
-     0.5f, -0.5f,  0.5f,  1.0f,  0.0f, 1.0f,  
-    -0.5f, -0.5f,  0.5f,  1.0f,  1.0f, 0.0f,  
-    -0.5f, -0.5f, -0.5f,  0.0f,  1.0f, 1.0f,  
-
-    -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 0.0f, 
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f, 0.0f, 
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 
-    -0.5f,  0.5f,  0.5f,  1.0f,  0.0f, 0.0f, 
-    -0.5f,  0.5f, -0.5f,  1.0f,  1.0f, 0.0f
+ -0.5, 0.5, 0.5 ,1,1,0,
+0.5, 0.5, 0.5 ,0,1,0,
+0.5, -0.5, 0.5 ,0,0,1,
+-0.5, -0.5, 0.5 ,1,0,0,
+-0.5, 0.5, 0.5 ,1,1,0,
+0.5, -0.5, 0.5 ,0,0,1,
+-0.5, 0.5, -0.5 ,1,1,0,
+0.5, 0.5, -0.5 ,0,1,0,
+0.5, 0.5, 0.5 ,0,0,1,
+-0.5, 0.5, 0.5 ,1,0,0,
+-0.5, 0.5, -0.5 ,1,1,0,
+0.5, 0.5, 0.5 ,0,0,1,
+-0.5, -0.5, -0.5 ,1,1,0,
+0.5, -0.5, -0.5 ,0,1,0,
+0.5, 0.5, -0.5 ,0,0,1,
+-0.5, 0.5, -0.5 ,1,0,0,
+-0.5, -0.5, -0.5 ,1,1,0,
+0.5, 0.5, -0.5 ,0,0,1,
+-0.5, -0.5, 0.5 ,1,1,0,
+0.5, -0.5, 0.5 ,0,1,0,
+0.5, -0.5, -0.5 ,0,0,1,
+-0.5, -0.5, -0.5 ,1,0,0,
+-0.5, -0.5, 0.5 ,1,1,0,
+0.5, -0.5, -0.5 ,0,0,1,
+-0.5, 0.5, -0.5 ,1,1,0,
+-0.5, 0.5, 0.5 ,0,1,0,
+-0.5, -0.5, 0.5 ,0,0,1,
+-0.5, -0.5, -0.5 ,1,0,0,
+-0.5, 0.5, -0.5 ,1,1,0,
+-0.5, -0.5, 0.5 ,0,0,1,
+0.5, 0.5, 0.5 ,1,1,0,
+0.5, 0.5, -0.5 ,0,1,0,
+0.5, -0.5, -0.5 ,0,0,1,
+0.5, -0.5, 0.5 ,1,0,0,
+0.5, 0.5, 0.5 ,1,1,0,
+0.5, -0.5, -0.5 ,0,0,1,
 };
 
 
@@ -174,7 +173,7 @@ struct Camera {
 
 	float fieldOfView =  80.0f; 
 	float nearClip = .1f; 
-	float farClip  = 100.0f; 
+	float farClip  = 4.0f; 
 
 	Matrix4 view; 
 	Matrix4 proj; 
@@ -216,12 +215,7 @@ uint32 GetColor( float r, float g, float b) // Normalized
 	return GetColor( (int)( r * 255),(int)( g * 255), (int)(b*255)) ;
 }
 
-int abs(int val){
 
-	if(val < 0) return val * -1;
-
-	 return val;
-}
 
 void DrawSquare(uint32 color, int xPos, int yPos, int width, int height)
 {
@@ -257,7 +251,7 @@ int NDCYToScreenPixel( float yNDC) {
 
 
 
-Vector3 ConvertNDCToScreen( Vector3 ndcPoint ) {
+inline Vector3 ConvertNDCToScreen( Vector3 ndcPoint ) {
 
 	float zScreen = ( (Ds / 2) * ndcPoint.z) + (Ds / 2);
 	return Vector3( NDCXToScreenPixel( ndcPoint.x), NDCYToScreenPixel( ndcPoint.y), zScreen );
@@ -351,52 +345,6 @@ float ParallelArea( Vector3 v1, Vector3 v2, Vector3 v3)
 		return (BA.x * CA.y) - (BA.y * CA.x);
 }
 
-void DrawBaryTriangle(   const Vector3 &v1, const Vector3 &v2, const Vector3 &v3, uint32 color){
-
-	// Compute Bounding Box
-	float minX = min3( v1.x, v2.x, v3.x);
-	float maxX = max3( v1.x, v2.x, v3.x);
-	float minY = min3( v1.y, v2.y, v3.y);
-	float maxY = max3( v1.y, v2.y, v3.y);
-
-	minX = max(minX, 0);
-	maxX = min(maxX, WindowWidth-1);
-
-	minY = max(minY, 0);
-	maxY = min(maxY, WindowHeight-1);
-
-	int x = 0, y = 0; 
-
-	for (y = minY; y <= maxY; ++y)
-	{
-		for (x = minX; x <= maxX; ++x)
-		{
-			Vector3 currentPoint = Vector3(x, y, 1.0f);
-
-			float c1 = perpDot(v2 - v3, currentPoint);
-			float c2 = perpDot(v3 - v2, currentPoint);
-			float c3 = perpDot(v3, currentPoint);
-
-			float area = perpDot(v1, v2);
-
-			float s = perpDot(currentPoint - v1, v2);
-			float t = perpDot(v1, currentPoint - v2); 
-			float sN = s / area;
-			float sT = t / area;
-
-
-
-			int w0 =  barycentric(v2, v3, currentPoint);
-			int w1 =  barycentric(v3, v1, currentPoint);
-			int w2 =  barycentric(v1, v2, currentPoint);
-
-			if(w0 >= 0 && w1 >= 0 && w2 >= 0){
-				DrawPixel(color, x, y);
-			}
-		}
-	}
-
-}
 
 void Swap( Vector3 *v1, Vector3 *v2){
 
@@ -471,7 +419,7 @@ void DrawBaryTriangle(   Vector3 &v1,  Vector3 &v2,  Vector3 &v3, Vector3 &color
 
 
 					DrawPixel(finalColor, x, y);
-					 zBuffer[ x+ y*bitmapWidth ] = interpolatedZ;
+					zBuffer[ x+ y*bitmapWidth ] = interpolatedZ;
 				}
 			}
 		}
@@ -491,7 +439,7 @@ void DrawBaryTriangle(   Vector3 &v1,  Vector3 &v2,  Vector3 &v3, Vector3 &color
 
 //Now need to transform model - view - perspective
 // we are recalculating for every vertice BAD!!!
-Vector3 MVP_Transform( Vector3 v, Matrix4 &mvp){
+inline Vector3 MVP_Transform( Vector3 v, Matrix4 &mvp){
 
 	Vector3 result = Vector3(0,0,0); 
 	Vector4 interim = Vector4(v.x, v.y, v.z, 1.0f);
@@ -534,14 +482,38 @@ void UpdateWindow(HDC hdc){
 						DIB_RGB_COLORS, SRCCOPY); 
 }
 
+void DrawDepthBuffer(){
+		for (int y = 0; y < bitmapHeight; y++)
+    {
+    	for(int x = 0; x < bitmapWidth; x++){
+    	//uint32 *base = (uint32*) BitmapMemory; 
+    	
+    	float p = zBuffer[ x + y*bitmapWidth]; 
+
+    	float n = camera.nearClip;
+    	float f = camera.farClip;
+    	p = (2 * n) / (f + n - p * (f - n));
+    	p = 1 - p;
+    	p *= 2.0f;
+
+    	if(p < 1.9){
+
+    		//something
+    		cout <<" Hello";
+    	}
+
+    	//Clamp(p, 0, 1.0f);
+		DrawPixel(GetColor( p, p, p) ,x, y);   
+		}	
+    }
+
+}
 
  void RenderUpdate(Vertex vertices[] , int vCount){
 
     int stride = 6; 
     int count = ArrayCount( vertices) / stride; 
     int realCount = ArrayCount(vertices);
-
-
 
    // int vCount = ArrayCount( vertices) ; //
 
@@ -551,49 +523,19 @@ void UpdateWindow(HDC hdc){
 
 	  uint32 colors[3];
 	  Vector3 colors24[3];
-
-    // for (int i = 0; i < ArrayCount(vertices)-1; i+=stride)
-    // {
-
-    // 	uint32 color = GetColor(vertices[i+3], vertices[i+4], vertices[i+5] ); 
-    // 	triangle[i / stride] =  Vector3( vertices[i], vertices[i+1], vertices[i+2] );  
-    // 	colors[ i / stride] = color;
-    // 	// triangle[i] = v1;[]
-
-    // 	colors24[i / stride].x = vertices[i+3]; 
-    // 	colors24[i / stride].y = vertices[i+4]; 
-    // 	colors24[i / stride].z = vertices[i+5]; 
-
-    // 	//DrawLineNDC(color,  vertices[i], vertices[i+1],  vertices[i+stride], vertices[i+1+stride]   );
-    // 	//DrawTriangle(color, Vector3(vertices[i], vertices[i+1] ), Vector3( vertices[i+stride], vertices[i+1+stride]) ); 
-    // }
-
-
-   // uint32 color = GetColor(vertices[realCount-3], vertices[realCount-2], vertices[realCount-1] ); 
-   // DrawLineNDC(color,  vertices[realCount-6], vertices[realCount-5],  vertices[0], vertices[1]   );
-
-	//DrawTriangle( triangle[2], triangle[0],  triangle[1]);
-	// FillFlatBottomTriangle( ConvertNDCToScreen( triangle[2] ), ConvertNDCToScreen( triangle[0]),  ConvertNDCToScreen( triangle[1] )) ;
-	// FillFlatTopTriangle( ConvertNDCToScreen( flatTop[0] ), ConvertNDCToScreen( flatTop[1]),  ConvertNDCToScreen( flatTop[2] )) ;
   
-
-          // DrawWireTriangle((skewed[2]), (, [0]), (skewed[1])) ; 
-
-//Create Vertex or Mesh
-    
-    
-
-    Matrix4 mod  = Matrix4();
+      Matrix4 mod  = Matrix4();
 	
 	//camera.position.z = positionOffset.x;
 	//
-		for(int x=0; x < 5; x++ ) {
-	    mod.Translate(mPositions[x]);
-	    mod  = mod.RotateZAxis( positionOffset.x  );
-		mod  = mod.RotateYAxis(positionOffset.y   );
-		mod  = mod.RotateXAxis(positionOffset.x   );
+		for(int x=0; x < ArrayCount(mPositions); x++ ) {
 
-		Matrix4 mvp =  camera.proj * camera.view * mod; //Double check matrix mult
+	     mod.Translate(mPositions[x]);
+	     mod  = mod.RotateZAxis( positionOffset.x  );
+		 mod  = mod.RotateYAxis(positionOffset.y   );
+		 mod  = mod.RotateXAxis(positionOffset.x   );
+
+		 Matrix4 mvp =  camera.proj * camera.view * mod; //Double check matrix mult
 
 				//Process Vertex List
 				for (int i = 0; i < vCount	; i+=3)
@@ -613,12 +555,14 @@ void UpdateWindow(HDC hdc){
 				    	                 vertices[i+0].color, vertices[i+1].color,  vertices[i+2].color) ; 
 
 
-					DrawBaryTriangle((   ndc3 ),
-				                     (   ndc2 ), 
-				                     (   ndc1 ), 
-				    	                 vertices[i+3].color, vertices[i+2].color,  vertices[i+1].color) ; 
+					// DrawBaryTriangle((   ndc3 ),
+				 //                     (   ndc2 ), 
+				 //                     (   ndc1 ), 
+				 //    	                 vertices[i+3].color, vertices[i+2].color,  vertices[i+1].color) ; 
 				}
 	}
+
+
    
  }
 
@@ -789,7 +733,7 @@ int CALLBACK WinMain(
 	Ds = 1.0f / tanHalfFovy;
 
 	camera.view = LookAt( camera.position, camera.position + camera.forward, Vector3(0,1,0)  );
-	camera.proj = Perspective(  camera.fieldOfView, (float)WindowWidth / (float) WindowHeight, camera.nearClip, 10); 
+	camera.proj = Perspective(  camera.fieldOfView, (float)WindowWidth / (float) WindowHeight, camera.nearClip, camera.farClip); 
 
    const int pitch = 6;
 

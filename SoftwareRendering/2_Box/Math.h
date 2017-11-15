@@ -379,7 +379,7 @@ Matrix4 operator*(Matrix4 &m, Matrix4 &m1){
 // }
 
 
-Vector4 operator*(Matrix4 &m, Vector4 &v) {
+inline Vector4 operator*(Matrix4 &m, Vector4 &v) {
 		Vector4 result = Vector4();
 
 		//First row of matrix down through the vector
@@ -402,7 +402,7 @@ Vector4 operator*(Matrix4 &m, Vector4 &v) {
 // }
 // UTILITY FUNCTIONS
 
-Matrix4 Perspective( float fov, float aspectRatio,  float n, float f) {
+inline Matrix4 Perspective( float fov, float aspectRatio,  float n, float f) {
 	Matrix4 mat;
 
 	float tanHalfFovy = tan( fov / 2.0f); 
@@ -459,7 +459,12 @@ float Clamp(float value, float min, float max){
 	return result;
 }
 
+inline int ABS(int val){
 
+	if(val < 0) return val * -1;
+
+	 return val;
+}
 // Matrix4 LookAt(Vector3 pos, Vector3 target, Vector3 up) {
 
 // 	Vector3 facing  = Normalize( target - pos);  // why not center eye?	
