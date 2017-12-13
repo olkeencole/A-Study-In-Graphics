@@ -23,8 +23,7 @@ How to write a (software) 3d polygon pipeline, C. Bloom, available here
 #include <Windows.h>
 #include <iostream>
 #include <stdint.h>
-#include "OBJLoader.h"
-#include "model.cpp"
+#include "math.h"
 using namespace std;
 
 #define Assert(Expression) if(! ( Expression)) { *(int *)0 = 0; }
@@ -168,15 +167,23 @@ static int WindowWidth  = 800;
 static int WindowHeight = 600; 
 
 struct Camera {
-	Vector3 position = Vector3(0,  0,   3.0f); 
+	Vector3 position = Vector3(0,  0,   5.0f); 
 	Vector3 forward  = Vector3(0,  0, -1.0f); // what we are looking at// direction facing // or could think of it as rotation I suppose. 
 
-	float fieldOfView =  80.0f; 
+	float fieldOfView =  60.0f; 
 	float nearClip = .1f; 
 	float farClip  = 4.0f; 
 
 	Matrix4 view; 
 	Matrix4 proj; 
+};
+
+struct Vertex
+{
+	Vector3 position; 
+	Vector3 normal; 
+	Vector3 color;
+	Vector2 uv; 
 };
  	
 Camera camera; 
@@ -216,7 +223,6 @@ uint32 GetColor( float r, float g, float b) // Normalized
 }
 
 
-
 void DrawSquare(uint32 color, int xPos, int yPos, int width, int height)
 {
   for (int y = yPos; y < height; ++y)
@@ -225,7 +231,6 @@ void DrawSquare(uint32 color, int xPos, int yPos, int width, int height)
   		DrawPixel(color,  x, y);
   }
 }
-
 
 bool CheckRangeNDC(float x1)
 {
@@ -257,14 +262,6 @@ inline Vector3 ConvertNDCToScreen( Vector3 ndcPoint ) {
 	return Vector3( NDCXToScreenPixel( ndcPoint.x), NDCYToScreenPixel( ndcPoint.y), zScreen );
 }
 
-//v2 and v3 have the same Y
-
-/* Slope of the line: y / x
-   Inverse: x / y
-   Changing slope of a line = v2.y - v1.y / v2.x - v1.x */ 
-
-
-
 
 float Max( float a, float b){
 	if(a > b)
@@ -291,49 +288,6 @@ float max3(float f1, float f2, float f3){
 	return result;
 }
 
-/*
- I think this  is ultimately a cross product, since
- the magnitude of the cross product is the area of the parallogram
- . dividing by half gets a triangle area. 
-	
-	cross(b-a , c-a); 
-
-*/
-
-float perpDot(const Vector3 &a, const Vector3 &b){
-	return (a.x * b.y) - (b.x * a.y);
-}
-
-int barycentric(const Vector3 &a, const Vector3 &b, const Vector3 &c){
-	return (b.x - a.x) * (c.y-a.y) - (b.y-a.y)*(c.x-a.x);
-}
-
-// Vector3 barycentric(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p){
-
-// 	Vector3 u = Cross( Vector3(  Vector3( p3 - p1).x, 
-// 		                         Vector3( p2 - p1).y, 
-// 		                         Vector3( p1 - p).z )
-// 					    , 
-// 					    Vector3(  Vector3( p3 - p1).x, 
-// 		                         Vector3(  p2 - p1).y, 
-// 		                         Vector3(  p1 - p).z ) ) ;
-// }
-
-// Vec3f barycentric(Vec2i *pts, Vec2i P)
-//  { 
-//     Vec3f u = cross(Vec3f( pts[2][0] - pts[0][0],
-//                            pts[1][0] - pts[0][0],
-//                            pts[0][0] - P[0]),
-
-//                      Vec3f(pts[2][1] - pts[0][1], 
-//                    	       pts[1][1] - pts[0][1], 
-//                    	       pts[0][1] - P[1]));
-
-
-//     if (std::abs(u[2])<1) return Vec3f(-1,1,1); // triangle is degenerate, in this case return smth with negative coordinates 
-   
-//     return Vec3f(1.f-(u.x + u.y) / u.z, u.y / u.z, u.x / u.z); 
-// } 
 
 
 float ParallelArea( Vector3 v1, Vector3 v2, Vector3 v3)
@@ -346,26 +300,7 @@ float ParallelArea( Vector3 v1, Vector3 v2, Vector3 v3)
 }
 
 
-void Swap( Vector3 *v1, Vector3 *v2){
 
-	Vector3 temp; 
-	temp = *v1; 
-
-	v1->x = v2->x; 
-	v1->y = v2->y; 
-	v1->z = v2->z; 
-
-	v2->x = temp.x; 
-	v2->y = temp.y; 
-	v2->z = temp.z; 
-
-}
-
-void SwapVertices( Vertex *ver1, Vertex *ver2){
-	Vertex temp = *ver1;
-	*ver1 = *ver2; 
-	*ver2 = temp;
-}
 
 void DrawBaryTriangle(   Vector3 &v1,  Vector3 &v2,  Vector3 &v3, Vector3 &color1, Vector3 &color2, Vector3 &color3){
 
@@ -427,16 +362,6 @@ void DrawBaryTriangle(   Vector3 &v1,  Vector3 &v2,  Vector3 &v3, Vector3 &color
 
 }
  
- Mesh model; 
-
-
- Vector3 Convert2(Vec3f v){
- 	Vector3 result = Vector3(v.x, v.y, v.z);
- 	return result;
- }
-
-
-
 //Now need to transform model - view - perspective
 // we are recalculating for every vertice BAD!!!
 inline Vector3 MVP_Transform( Vector3 v, Matrix4 &mvp){
@@ -512,8 +437,7 @@ void DrawDepthBuffer(){
  void RenderUpdate(Vertex vertices[] , int vCount){
 
     int stride = 6; 
-    int count = ArrayCount( vertices) / stride; 
-    int realCount = ArrayCount(vertices);
+
 
    // int vCount = ArrayCount( vertices) ; //
 
@@ -733,7 +657,7 @@ int CALLBACK WinMain(
 	Ds = 1.0f / tanHalfFovy;
 
 	camera.view = LookAt( camera.position, camera.position + camera.forward, Vector3(0,1,0)  );
-	camera.proj = Perspective(  camera.fieldOfView, (float)WindowWidth / (float) WindowHeight, camera.nearClip, camera.farClip); 
+	camera.proj = Perspective(  camera.fieldOfView * DEG2RAD, (float)WindowWidth / (float) WindowHeight, camera.nearClip, camera.farClip); 
 
    const int pitch = 6;
 
