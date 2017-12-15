@@ -11,6 +11,7 @@
 #include <string>
 
 using namespace std;
+#define ArrayCount(value) ( sizeof(value) / sizeof(value[0] ) ) //Length of an Array
 
 typedef uint16_t  u16; 
 typedef uint32_t  u32;
@@ -40,6 +41,9 @@ VkImageView *imageViews;
 VkDeviceMemory vertexBufferMemory; 
 VkBuffer vertexBuffer; 
 
+VkDeviceMemory indexBufferMemory; 
+VkBuffer indexBuffer; 
+
 VkRenderPass renderPass; 
 VkPipelineLayout pipelineLayout; 
 VkPipeline graphicsPipeline;
@@ -61,6 +65,17 @@ const Vertex vertices[] = {
 	{ {0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
     { {0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}},
     { {-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+};
+
+const Vertex verticesRect[] = {
+	{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, -0.5f},  {0.0f, 1.0f, 0.0f}},
+    {{0.5f, 0.5f},   {0.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.5f},  {1.0f, 0.0f, 1.0f}}
+};
+
+const u16 indices[] = {
+   0, 1, 2, 2, 3, 0
 };
 
 const int WindowWidth   = 800; 
@@ -667,7 +682,7 @@ void CreateGraphicsPipeline(){
 		vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInput.vertexBindingDescriptionCount 	= 1;
 		vertexInput.pVertexBindingDescriptions 		= &vertexBindingDesc;
-		vertexInput.vertexAttributeDescriptionCount = 2; //HARDCODED
+		vertexInput.vertexAttributeDescriptionCount = ArrayCount(attribList);// 2; //HARDCODED
 		vertexInput.pVertexAttributeDescriptions 	= attribList;
 
 
@@ -895,7 +910,7 @@ void CopyBuffers(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
 
 void CreateVertexBuffer(){
 
-	VkDeviceSize bufferSize = sizeof( vertices[0] ) * 3; // HARDCODED
+	VkDeviceSize bufferSize = sizeof( vertices[0] ) * ArrayCount(vertices); // HARDCODED
 	VkBuffer stagingBuffer; 
 	VkDeviceMemory stagingMemory; 
 	CreateBuffer( bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
@@ -910,6 +925,29 @@ void CreateVertexBuffer(){
 	CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &vertexBuffer, &vertexBufferMemory);
 
 	CopyBuffers(stagingBuffer, vertexBuffer, bufferSize);
+
+	vkDestroyBuffer(device, stagingBuffer, nullptr);
+	vkFreeMemory(device, stagingMemory, nullptr);
+}
+
+void CreateIndexBuffer(){
+
+	VkDeviceSize bufferSize = sizeof( indices[0] ) * ArrayCount(indices); // HARDCODED
+	VkBuffer stagingBuffer; 
+	VkDeviceMemory stagingMemory; 
+	CreateBuffer( bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+				  &stagingBuffer, &stagingMemory );
+
+
+	void *data; 
+	vkMapMemory( device, stagingMemory, 0, bufferSize, 0, &data); //pointer to a pointer
+		memcpy(data, indices, bufferSize);
+	vkUnmapMemory(device, stagingMemory);
+
+
+	CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &indexBuffer, &indexBufferMemory);
+
+	CopyBuffers(stagingBuffer, indexBuffer, bufferSize);
 
 	vkDestroyBuffer(device, stagingBuffer, nullptr);
 	vkFreeMemory(device, stagingMemory, nullptr);
@@ -955,22 +993,21 @@ void CreateCommandBuffers(){
 		vkCmdBeginRenderPass(commandBuffers[i],  &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE  );
 
 				// Bind the commandbuffers with the graphics pipeline 
-				vkCmdBindPipeline( commandBuffers[i] , VK_PIPELINE_BIND_POINT_GRAPHICS,  graphicsPipeline ); 	
+				vkCmdBindPipeline( commandBuffers[i] , VK_PIPELINE_BIND_POINT_GRAPHICS,  graphicsPipeline ); //Bind the buffers to the pipeline	
 				VkBuffer vBuffers[] = {vertexBuffer};
 				VkDeviceSize offsets[] = {0}; 
 				vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vBuffers, offsets); //offset and # of bindings 
+				//vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0 , VK_INDEX_TYPE_UINT16); 
 
-				vkCmdDraw( commandBuffers[i], 3, 1, 0, 0); // HARDCODED vertexCount, instanceCount, offset into vertex buffer, offset for instanced rendering
+				vkCmdDraw( commandBuffers[i], ArrayCount(vertices), 1, 0, 0); // HARDCODED vertexCount, instanceCount, offset into vertex buffer, offset for instanced rendering
+				//vkCmdDrawIndexed(commandBuffers[i], ArrayCount(indices), 1, 0, 0, 0); //HARDCODED
 
 		vkCmdEndRenderPass( commandBuffers[i] );
 
 		if(vkEndCommandBuffer( commandBuffers[i]) != VK_SUCCESS ) {
 			cout << "Failed to record command buffer" << endl;
 		}
-
 	}
-
-
 }
 
 
@@ -1029,20 +1066,8 @@ void CreateSemaphores(){
 	}
 }
 
-void Initialize(){
-	InitWindow();
 
-	if(enableValidationLayers && !CheckValidationLayer()){
-		cout << "Validation Layers Not Supported" << endl;
-	}
-
-	VkApplicationInfo appInfo = {}; 
-	appInfo.sType              =  VK_STRUCTURE_TYPE_APPLICATION_INFO;  
-	appInfo.pApplicationName   =  "VK Triangle"; 
-	appInfo.applicationVersion =  VK_MAKE_VERSION(1,0,0); 
-	appInfo.pEngineName        = "No Engine"; 
-	appInfo.engineVersion      =  VK_MAKE_VERSION(1,0,0); 
-	appInfo.apiVersion         =  VK_API_VERSION_1_0;
+void CreateVulkanInstance(VkApplicationInfo *appInfo){
 
 	//Accumulate Necessary Extensions
     u32 extensionCount = 0;
@@ -1073,7 +1098,7 @@ void Initialize(){
     //VKInstanceCreateInfo
 	VkInstanceCreateInfo instanceInfo = {}; 
 	instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;  
-	instanceInfo.pApplicationInfo = &appInfo; 
+	instanceInfo.pApplicationInfo = appInfo; 
 
 	instanceInfo.enabledExtensionCount   = extensionCount;
 	instanceInfo.ppEnabledExtensionNames = glfwExtensions;  
@@ -1094,20 +1119,33 @@ void Initialize(){
 		cout << "Creating Instance Failed:" << r <<endl;
 	} 
 
+}
+void Initialize(){
+	InitWindow();
+
+	if(enableValidationLayers && !CheckValidationLayer()){
+		cout << "Validation Layers Not Supported" << endl;
+	}
+
+	VkApplicationInfo appInfo = {}; 
+	appInfo.sType              =  VK_STRUCTURE_TYPE_APPLICATION_INFO;  
+	appInfo.pApplicationName   =  "VK Triangle"; 
+	appInfo.applicationVersion =  VK_MAKE_VERSION(1,0,0); 
+	appInfo.pEngineName        = "No Engine"; 
+	appInfo.engineVersion      =  VK_MAKE_VERSION(1,0,0); 
+	appInfo.apiVersion         =  VK_API_VERSION_1_0;
+
+
 	//What extensions do we have? 
 	u32 extCount = 0; 
-
 	vkEnumerateInstanceExtensionProperties(nullptr, &extCount, nullptr); 
 	VkExtensionProperties *extensions = new VkExtensionProperties[extCount]; 
 	vkEnumerateInstanceExtensionProperties(nullptr, &extCount, extensions); 
 
 	std::cout << extCount << " extensions supported." << std::endl; 
 
-	// for (int i = 0; i < extCount; ++i)
-	// {
-	// 	 //cout << extensions[i].extensionName << endl;;
-	// }
 
+	CreateVulkanInstance(&appInfo);
 	InitializeDebugging();
 	CreateSurface();
 	FindPhysicalDevice();	
@@ -1119,6 +1157,7 @@ void Initialize(){
 	CreateFrameBuffer();
 	CreateCommandPool();
 	CreateVertexBuffer();
+	CreateIndexBuffer();
 	CreateCommandBuffers();
 	CreateSemaphores();
 
@@ -1227,6 +1266,9 @@ while(!glfwWindowShouldClose(window) ){
 void CleanUp(){
 	
 	CleanUpSwapChain(); 
+
+	vkDestroyBuffer(device, indexBuffer, nullptr); 
+	vkFreeMemory(device, indexBufferMemory, nullptr);
 
 	vkDestroyBuffer(device, vertexBuffer, nullptr);
 	vkFreeMemory(device, vertexBufferMemory, nullptr);
