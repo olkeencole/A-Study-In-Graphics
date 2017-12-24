@@ -13,6 +13,15 @@
 using namespace std;
 #define ArrayCount(value) ( sizeof(value) / sizeof(value[0] ) ) //Length of an Array
 
+
+struct UniformBufferObject {
+	Matrix4 model; 
+	Matrix4 view; 
+	Matrix4 proj; 
+}; 
+
+UniformBufferObject ubo; 
+
 typedef uint16_t  u16; 
 typedef uint32_t  u32;
 
@@ -44,7 +53,11 @@ VkBuffer vertexBuffer;
 VkDeviceMemory indexBufferMemory; 
 VkBuffer indexBuffer; 
 
+VkDeviceMemory uniformBufferMemory; 
+VkBuffer uniformBuffer; 
+
 VkRenderPass renderPass; 
+VkDescriptorSetLayout descriptorSetLayout; 
 VkPipelineLayout pipelineLayout; 
 VkPipeline graphicsPipeline;
 
@@ -55,6 +68,8 @@ VkCommandBuffer *commandBuffers;
 
 VkSemaphore imageAvailableSemaphore; 
 VkSemaphore renderFinishedSemaphore; 
+
+
 
 struct Vertex {
 	Vector2 pos; 
@@ -755,8 +770,9 @@ void CreateGraphicsPipeline(){
 	//VkPipelineLayout           pipelineLayout; 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {}; //specify uniform values in the shader
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO; 
-		pipelineLayoutInfo.setLayoutCount    = 0;
-		pipelineLayoutInfo.pSetLayouts       = nullptr;
+		pipelineLayoutInfo.setLayoutCount    = 1;
+		pipelineLayoutInfo.pSetLayouts       = &descriptorSetLayout;
+
 		pipelineLayoutInfo.pushConstantRangeCount = 0;
 		pipelineLayoutInfo.pPushConstantRanges = 0;
 
@@ -1120,6 +1136,39 @@ void CreateVulkanInstance(VkApplicationInfo *appInfo){
 	} 
 
 }
+
+void CreateDescriptorSetLayout(){
+	VkDescriptorSetLayoutBinding uboLayoutBinding = {}; 
+	uboLayoutBinding.binding = 0;
+	uboLayoutBinding.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.descriptorCount =  1;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; 
+
+	uboLayoutBinding.pImmutableSamplers = nullptr;
+
+
+	VkDescriptorSetLayoutCreateInfo descLayoutCreateInfo = {};
+	descLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	descLayoutCreateInfo.bindingCount = 1; 
+	descLayoutCreateInfo.pBindings    = &uboLayoutBinding; 
+	
+	if( vkCreateDescriptorSetLayout( device ,&descLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS){
+		cout << "Failed to create Descriptor Set Layout" <<endl;
+	}
+
+
+
+}
+
+void CreateUniformBuffer(){
+	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+	CreateBuffer( bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+				  &uniformBuffer, &uniformBufferMemory );
+
+
+}
+
+
 void Initialize(){
 	InitWindow();
 
@@ -1153,11 +1202,13 @@ void Initialize(){
 	CreateSwapChain();
 	CreateImageViews();
 	CreateRenderPass();
+	CreateDescriptorSetLayout(); 
 	CreateGraphicsPipeline();
 	CreateFrameBuffer();
 	CreateCommandPool();
 	CreateVertexBuffer();
 	CreateIndexBuffer();
+	CreateUniformBuffer();
 	CreateCommandBuffers();
 	CreateSemaphores();
 
@@ -1252,10 +1303,27 @@ void DrawFrame( ){
 
 }
 
+void UpdateUniformBuffer(){
+
+	UniformBufferObject ubo = {}; 
+	Matrix4 modelMatrix = Matrix4(); //Fix this!
+	ubo.model = modelMatrix.RotateXAxis( 45.0f);
+	ubo.view  = LookAt(Vector3(2,2,2), Vector3(0,0,0), Vector3(0,0,1) ) ;
+	ubo.proj  = Perspective(45.0f * DEG2RAD, (float) swapChainExtent.width / (float) swapChainExtent.height , 0.1f, 10.0f);
+	ubo.proj.m[5] *= -1.0f;
+
+
+	void *data; 
+	vkMapMemory(device, uniformBufferMemory, 0, sizeof(ubo), 0, &data ); 
+	memcpy(data, &ubo, sizeof(ubo) ) ;
+
+	vkUnmapMemory(device, uniformBufferMemory) ;
+}
 
 void MainLoop(){
 while(!glfwWindowShouldClose(window) ){
 		glfwPollEvents();
+		UpdateUniformBuffer();
 		DrawFrame();
 	}
 	vkDeviceWaitIdle(device); 
@@ -1266,6 +1334,8 @@ while(!glfwWindowShouldClose(window) ){
 void CleanUp(){
 	
 	CleanUpSwapChain(); 
+	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+	vkDestroyBuffer(device, uniformBuffer, nullptr);
 
 	vkDestroyBuffer(device, indexBuffer, nullptr); 
 	vkFreeMemory(device, indexBufferMemory, nullptr);

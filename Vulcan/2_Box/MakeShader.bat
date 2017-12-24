@@ -1,0 +1,1 @@
+C:\VulkanSDK/1.0.65.0/bin/glslangValidator -V %1
