@@ -478,6 +478,32 @@ inline int ABS(int val){
 
 	 return val;
 }
+
+
+float Max( float a, float b){
+	if(a > b)
+		return a; 
+	else
+		return b;
+}
+
+float Min(float a, float b){
+	if( a > b)
+		return b; 
+	else 
+		return a;
+}
+float min3( float f1, float f2, float f3){
+	float result = Min(f1, f2);
+	result = Min(result, f3);
+	return result;
+}
+
+float max3(float f1, float f2, float f3){
+	float result = Max(f1, f2); 
+	result = Max(result, f3);
+	return result;
+}
 // Matrix4 LookAt(Vector3 pos, Vector3 target, Vector3 up) {
 
 // 	Vector3 facing  = Normalize( target - pos);  // why not center eye?	

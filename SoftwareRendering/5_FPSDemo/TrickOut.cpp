@@ -47,7 +47,6 @@ static double DeltaTime = 0;
 
 
 // Objects
-
 #define MAX_BRICKS 20
 #define BRICK_ROWS 8 
 #define BRICK_COLS 5 
@@ -58,7 +57,6 @@ static float zDepth = -5.0f;
 Vector3 positionOffset; 
 float *zBuffer;
 int processCount = 1;
-
 int pitch = 6;
 
 
@@ -115,23 +113,17 @@ struct Camera {
 	Matrix4 proj; 
 };
 
-
-
 struct Brick {
 	Vector3 position; 
 	Vector3 scale; 
 	bool drawingEnabled = true;
-	Brick(){
-
-	}
+	Brick(){}
 
 	Brick(Vector3 pos, Vector3 s) {
 		position = pos; 
 		scale    = s;
 	}
 };
-
-
 
 struct Vertex
 {
@@ -214,6 +206,31 @@ inline Vector3 ConvertNDCToScreen( Vector3 ndcPoint ) {
 	return Vector3( NDCXToScreenPixel( ndcPoint.x), NDCYToScreenPixel( ndcPoint.y), zScreen );
 }
 
+
+float Max( float a, float b){
+	if(a > b)
+		return a; 
+	else
+		return b;
+}
+
+float Min(float a, float b){
+	if( a > b)
+		return b; 
+	else 
+		return a;
+}
+float min3( float f1, float f2, float f3){
+	float result = Min(f1, f2);
+	result = Min(result, f3);
+	return result;
+}
+
+float max3(float f1, float f2, float f3){
+	float result = Max(f1, f2); 
+	result = Max(result, f3);
+	return result;
+}
 
 Vertex *vertices; 
 int vCount; 
@@ -783,6 +800,92 @@ void UpdateGame() {
 
 
 
+void HandleWindowsMessages(HWND &WindowHandle)
+ {
+ 	MSG msg;
+	if(PeekMessage(&msg, NULL,0, 0, PM_REMOVE )) 
+	{ 
+
+		switch(msg.message) {
+
+		case WM_SYSKEYDOWN:
+		case WM_SYSKEYUP:
+		case WM_KEYDOWN:
+		case WM_KEYUP:
+		{
+			LPARAM lParam = msg.lParam;
+			WPARAM wParam = msg.wParam;
+
+			bool wasDown = ( (1 << 30) & lParam ) != 0 ? true : false; 
+			bool isDown  = ( (1 << 31) & lParam ) == 0 ? true : false; 
+
+			if(wParam == VK_ESCAPE) {
+				PostQuitMessage(0);
+				Running = false;
+			}
+
+			if(wParam == VK_RIGHT || wParam =='D')
+			{
+				ProcessKeyEventPress(isDown, wasDown, &moveRightState);
+
+			}else
+			if(wParam == VK_LEFT || wParam =='A')
+			{
+				ProcessKeyEventPress(isDown, wasDown, &moveLeftState);
+
+			} else
+			if(wParam == VK_DOWN || wParam =='S') {
+
+				ProcessKeyEventPress(isDown, wasDown, &moveBackState);
+
+			}else
+			if(wParam == VK_UP || wParam == 'W') {
+
+				ProcessKeyEventPress(isDown, wasDown, &moveForwardState);//moveBackforward.down = true;
+			}
+			
+			}break; 
+			case WM_MOUSEMOVE: 
+			{
+				ProcessMouseInput(WindowHandle, msg.wParam, msg.lParam);
+			
+			}break;
+			default:
+			{
+
+			   TranslateMessage(&msg); 
+			   DispatchMessage( &msg); 
+			}
+		}
+		
+	}
+}
+
+
+void FPSLoop(){
+
+		camera.yaw   += mouseXDelta * DeltaTime * 40;
+		camera.pitch += mouseYDelta * DeltaTime * 40;
+
+  		float moveSpeed = 5.0f;
+	    if(moveForwardState == true) {
+			camera.position += camera.forward * DeltaTime * moveSpeed;
+		}
+
+		if(moveBackState == true) {
+			camera.position -= camera.forward * DeltaTime * moveSpeed;
+		}
+
+		if(moveRightState)
+			camera.position += GetRight() * DeltaTime * moveSpeed;
+
+		if(moveLeftState)
+			camera.position -= GetRight() * DeltaTime * moveSpeed;
+
+        ProcessPitch();
+	    ProcessYaw();
+}
+
 int CALLBACK WinMain(
     HINSTANCE Instance,
     HINSTANCE PrevInstance,
@@ -830,16 +933,17 @@ int CALLBACK WinMain(
 	while(Running ) 
 	{
 		MSG msg; 
-		//GetMessage( &msg, NULL, 0, 0))  
-		if(PeekMessage(&msg, 0,0, 0, PM_REMOVE )) { 
+		// //GetMessage( &msg, NULL, 0, 0))  
+		// if(PeekMessage(&msg, 0,0, 0, PM_REMOVE )) { 
 
-			if( msg.message == WM_QUIT)
-			{
-				Running = false;
-			}
-			TranslateMessage(&msg); 
-			DispatchMessage( &msg); 
-		}
+		// 	if( msg.message == WM_QUIT)
+		// 	{
+		// 		Running = false;
+		// 	}
+		// 	TranslateMessage(&msg); 
+		// 	DispatchMessage( &msg); 
+		// }
+		HandleWindowsMessages(WindowHandle);
 
 		UpdateGame(); 
 
@@ -849,10 +953,11 @@ int CALLBACK WinMain(
 	    {
 	    	zBuffer[i] = -111111.0f;
 	    }
+
 		Render();
-		//DrawDepthBuffer();
-		//RenderUpdateTest(vertices, vCount);
+		
 		UpdateWindow(GetDC(WindowHandle));
+
 		//Process Time
 		LARGE_INTEGER EndCounter; 
 		QueryPerformanceCounter(&EndCounter);
@@ -860,8 +965,6 @@ int CALLBACK WinMain(
 		LastCounter = EndCounter; 
 		DeltaTime = (double) ( (double)TimeElapsedInt / (double)PerfCountFrequency.QuadPart); 
 
-		//char buffer[256]; 
-		//sprintf(buffer, "% delta time", DeltaTime);
 	}
 
 

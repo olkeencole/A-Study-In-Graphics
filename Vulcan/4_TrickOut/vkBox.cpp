@@ -129,44 +129,6 @@ const Vertex vertices[] = {
     {{-0.5f,  0.5f, -0.5f},  {1.0f,  1.0f, 0.0f}}
 };
 
-
- Vector3 mPositions[] = {
-  Vector3( 0.0f,  0.0f,  0.0f), 
-  Vector3( 2.0f,  5.0f, -15.0f), 
-  Vector3(-1.5f, -2.2f, -2.5f),  
-  Vector3(-3.8f, -2.0f, -12.3f),  
-  Vector3( 2.4f, -0.4f, -3.5f),  
-  Vector3(-1.7f,  3.0f, -7.5f),  
-  Vector3( 1.3f, -2.0f, -2.5f),  
-  Vector3( 1.5f,  2.0f, -2.5f), 
-  Vector3( 1.5f,  0.2f, -1.5f), 
-  Vector3(-1.3f,  1.0f, -1.5f),
-
-  Vector3(-3.7f,  3.0f, -7.5f),  
-  Vector3( 3.3f, -2.0f, -2.5f),  
-  Vector3( 4.5f,  4.0f, -8.5f), 
-  Vector3( -4.5f,  5.2f, -9.5f), 
-  Vector3(-3.3f,  -5.0f, -15.5f),
-
-  Vector3(-1.7f, -3.0f, -7.5f),  
-  Vector3( 1.3f, -2.0f, -2.5f),  
-  Vector3( 4.5f, -4.0f, -4.5f), 
-  Vector3( 2.5f,  4.2f, -7.5f), 
-  Vector3(-2.3f,  -5.0f, -7.5f),
-
-  Vector3(-4.7f, -3.3f,  -7.5f),  
-  Vector3( 2.332f, -2.6f, -3.5f),  
-  Vector3( 3.2f, -2.7f, -4.5f), 
-  Vector3(-3.5f,  3.2f, -7.5f), 
-  Vector3(-2.3f,  -2.43f, -7.5f) ,
-
-  Vector3( 6.0f,  0.7f, -4.5f), 
-  Vector3(-5.5f,  -0.2f, -7.5f), 
-  Vector3( 6.1f,  -1.43f, -7.5f) ,
-  Vector3(-7.2f,  -1.2f, -7.5f)
- };
-
-
 // const Vertex vertices[] = {
 // 	{{-0.5f, -0.5f , 0 }, {1.0f, 0.0f, 0.0f}},
 //     {{0.5f, -0.5f  , 0 },  {0.0f, 1.0f, 0.0f}},
@@ -279,6 +241,7 @@ bool CheckValidationLayer(){
 }
 
 
+
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
     VkDebugReportFlagsEXT      flags,
     VkDebugReportObjectTypeEXT objType,
@@ -298,6 +261,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 void RecreateSwapChain(); 
 
 static void OnResize(GLFWwindow* window, int width, int height){
+
 	RecreateSwapChain();
 }
 
@@ -1376,8 +1340,6 @@ void CreateCommandBuffers(){
 
 				vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 				vkCmdDraw( commandBuffers[i], ArrayCount(vertices), 1, 0, 0); // vertexCount, instanceCount, offset into vertex buffer, offset for instanced rendering
-				//vkCmdDraw( commandBuffers[i], ArrayCount(vertices), 1, 0, 0); // vertexCount, instanceCount, offset into vertex buffer, offset for instanced rendering
-
 				//vkCmdDrawIndexed(commandBuffers[i], ArrayCount(indices), 1, 0, 0, 0); 
 
 		vkCmdEndRenderPass( commandBuffers[i] );
@@ -1518,12 +1480,16 @@ void CreateDescriptorSetLayout(){
 	if( vkCreateDescriptorSetLayout( device ,&descLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS){
 		cout << "Failed to create Descriptor Set Layout" <<endl;
 	}
+
+
+
 }
 
 void CreateUniformBuffer(){
 	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 	CreateBuffer( bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
 				  &uniformBuffer, &uniformBufferMemory );
+
 
 }
 
@@ -1671,7 +1637,7 @@ void RecreateSwapChain(){
 }
 
 
-void DrawFrame( Vector3 pos ){
+void DrawFrame( ){
 /* Acquire an image from the swap chain
    Execute the command buffer with that image as attachment in the framebuffer
    Return the image to the swap chain for presentation
@@ -1687,21 +1653,19 @@ void DrawFrame( Vector3 pos ){
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
 	VkSemaphore waitSemaphores[]      = { imageAvailableSemaphore };
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT }; //Which stage to wait for? 
-		
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores    = waitSemaphores;
-		submitInfo.pWaitDstStageMask  = waitStages; 
+	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT }; //Which stage to wait for? 
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores    = waitSemaphores;
+	submitInfo.pWaitDstStageMask  = waitStages; 
 
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers    = &commandBuffers[imageIndex];
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers    = &commandBuffers[imageIndex];
 
 	//Specify which semaphores to signal once the commandbuffers have finished execution
-		VkSemaphore signalSemaphores[] = { renderFinishedSemaphore }; //Queue will flag this semaphore
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores    = signalSemaphores;
+	VkSemaphore signalSemaphores[] = { renderFinishedSemaphore }; //Queue will flag this semaphore
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores    = signalSemaphores;
 
-	// Submit commands  to the Graphics Queue
 	if(vkQueueSubmit ( graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE ) != VK_SUCCESS ){
 		cout << "Failed to submit Draw Command Buffer" << endl;
 	}
@@ -1710,14 +1674,14 @@ void DrawFrame( Vector3 pos ){
 	//Time to present
 
 	VkPresentInfoKHR presentInfo = {};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = signalSemaphores; //when render is finished
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = signalSemaphores; //when render is finished
 
-			VkSwapchainKHR swapChains[] = { swapChain};
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains   = swapChains; //why array here? 
-		presentInfo.pImageIndices = &imageIndex; 
+	VkSwapchainKHR swapChains[] = { swapChain};
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains   = swapChains; //why array here? 
+	presentInfo.pImageIndices = &imageIndex; 
 
 	presentInfo.pResults = nullptr;
 
@@ -1726,19 +1690,17 @@ void DrawFrame( Vector3 pos ){
 
 }
 
-void UpdateUniformBuffer(Vector3 position){
+void UpdateUniformBuffer(){
 
 	static auto startTime   = std::chrono::high_resolution_clock::now();
            auto currentTime = std::chrono::high_resolution_clock::now();
            float time       = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
 	UniformBufferObject ubo = {}; 
-
 	Matrix4 modelMatrix = Matrix4(); //Fix this!
-	modelMatrix.Translate( position);
 	ubo.model = modelMatrix.RotateZAxis( 60.0f * time);
 	ubo.view  = LookAt(Vector3(2,2,2), Vector3(0,0,0), Vector3(0,0,1) ) ;
-	ubo.proj  = Perspective(60.0f * DEG2RAD,  (float) swapChainExtent.width / (float) swapChainExtent.height , 0.1f, 10.0f);
+	ubo.proj  = Perspective(45.0f * DEG2RAD,  (float) swapChainExtent.width / (float) swapChainExtent.height , 0.1f, 10.0f);
 	ubo.proj.m[5] *= -1.0f;
 
 
@@ -1752,12 +1714,8 @@ void UpdateUniformBuffer(Vector3 position){
 void MainLoop(){
 while(!glfwWindowShouldClose(window) ){
 		glfwPollEvents();
-
-		//for (int i = 0; i < ArrayCount(mPositions); ++i)
-		UpdateUniformBuffer(mPositions[0]);
-		DrawFrame(mPositions[0]);
-		
-
+		UpdateUniformBuffer();
+		DrawFrame();
 	}
 	vkDeviceWaitIdle(device); 
 }

@@ -11,6 +11,8 @@ $Notice:
   DEMO:  TrickOut
 
 */
+
+
 #include <iostream>
 #include <stdio.h>
 #include <Windows.h>
@@ -215,6 +217,31 @@ inline Vector3 ConvertNDCToScreen( Vector3 ndcPoint ) {
 }
 
 
+float Max( float a, float b){
+	if(a > b)
+		return a; 
+	else
+		return b;
+}
+
+float Min(float a, float b){
+	if( a > b)
+		return b; 
+	else 
+		return a;
+}
+float min3( float f1, float f2, float f3){
+	float result = Min(f1, f2);
+	result = Min(result, f3);
+	return result;
+}
+
+float max3(float f1, float f2, float f3){
+	float result = Max(f1, f2); 
+	result = Max(result, f3);
+	return result;
+}
+
 Vertex *vertices; 
 int vCount; 
 
@@ -245,8 +272,6 @@ void ProcessVertices()
 	}
 }
 
-
-
 float ParallelArea( Vector3 v1, Vector3 v2, Vector3 v3)
 {
 		Vector3 BA = v2 - v1; 
@@ -255,9 +280,6 @@ float ParallelArea( Vector3 v1, Vector3 v2, Vector3 v3)
 
 		return (BA.x * CA.y) - (BA.y * CA.x);
 }
-
-
-
 
 void DrawBaryTriangle(   Vector3 &v1,  Vector3 &v2,  Vector3 &v3, Vector3 &color1, Vector3 &color2, Vector3 &color3){
 

@@ -1,5 +1,5 @@
 /* ==========================================================
-$File:    BoxDemo.cpp
+$File:    FPSDemo.cpp
 $Revision v 1.1
 $Creator: Keenan Cole
 $Notice: 
@@ -8,12 +8,18 @@ $Notice:
 /* A STUDY IN GRAPHICS
   
   API :  Software Rendering 
-  DEMO:  TrickOut
+  DEMO:  First Person Camera
+
+  WARNING: Rendering the boxes with software rendering might be a bit much on slower CPUs
+
+  Note also that clipping is not implemented so weird artifacts will show if you get too close to the boxes or look away
 
 */
 #include <iostream>
 #include <stdio.h>
 #include <Windows.h>
+#include <Windowsx.h>
+
 #include <stdint.h>
 #include "Math.h"
 using namespace std;
@@ -32,33 +38,18 @@ using namespace std;
 typedef uint8_t uint8; 
 typedef uint32_t uint32;
 
- //int vCount = (   ArrayCount(Cube_Color) ) /  pitch ;
-//Vertex *vertices; //[  vCount];
-
-/// GLOBALS
-//
-
-
 /// GLOBALS
 static HGLRC GlobalRenderContext; 
 static int WindowWidth  = 800; 
 static int WindowHeight = 600; 
-static double DeltaTime = 0;
 
-
-// Objects
-
-#define MAX_BRICKS 20
-#define BRICK_ROWS 8 
-#define BRICK_COLS 5 
-
+//starting z depth
 static float zDepth = -5.0f;
 
 
 Vector3 positionOffset; 
 float *zBuffer;
 int processCount = 1;
-
 int pitch = 6;
 
 
@@ -103,8 +94,46 @@ float Cube_Color[] = {
 };
 
 
+
+ Vector3 mPositions[] = {
+  Vector3( 0.0f,  0.0f,  0.0f), 
+  Vector3( 2.0f,  5.0f, -15.0f), 
+  Vector3(-1.5f, -2.2f, -2.5f),  
+  Vector3(-3.8f, -2.0f, -12.3f),  
+  Vector3( 2.4f, -0.4f, -3.5f),  
+  Vector3(-1.7f,  3.0f, -7.5f),  
+  Vector3( 1.3f, -2.0f, -2.5f),  
+  Vector3( 1.5f,  2.0f, -2.5f), 
+  Vector3( 1.5f,  0.2f, -1.5f), 
+  Vector3(-1.3f,  1.0f, -1.5f),
+
+  Vector3(-3.7f,  3.0f, -7.5f),  
+  Vector3( 3.3f, -2.0f, -2.5f),  
+  Vector3( 4.5f,  4.0f, -8.5f), 
+  Vector3( -4.5f,  5.2f, -9.5f), 
+  Vector3(-3.3f,  -5.0f, -15.5f),
+
+  Vector3(-1.7f, -3.0f, -7.5f),  
+  Vector3( 1.3f, -2.0f, -2.5f),  
+  Vector3( 4.5f, -4.0f, -4.5f), 
+  Vector3( 2.5f,  4.2f, -7.5f), 
+  Vector3(-2.3f,  -5.0f, -7.5f),
+
+  Vector3(-4.7f, -3.3f,  -7.5f),  
+  Vector3( 2.332f, -2.6f, -3.5f),  
+  Vector3( 3.2f, -2.7f, -4.5f), 
+  Vector3(-3.5f,  3.2f, -7.5f), 
+  Vector3(-2.3f,  -2.43f, -7.5f) ,
+
+  Vector3( 6.0f,  0.7f, -4.5f), 
+  Vector3(-5.5f,  -0.2f, -7.5f), 
+  Vector3( 6.1f,  -1.43f, -7.5f) ,
+  Vector3(-7.2f,  -1.2f, -7.5f)
+ };
+
+
 struct Camera {
-	Vector3 position = Vector3(0,  0,   5.0f); 
+	Vector3 position = Vector3(0,  0,   8.0f); 
 	Vector3 forward  = Vector3(0,  0, -1.0f); // what we are looking at// direction facing // or could think of it as rotation I suppose. 
 
 	float fieldOfView =  60.0f; 
@@ -113,25 +142,111 @@ struct Camera {
 
 	Matrix4 view; 
 	Matrix4 proj; 
+
+	float pitch = 0; 
+	float yaw = 0; 
 };
 
+Camera camera; 
+float Ds = 0;
+float tanHalfFovy; 
 
 
-struct Brick {
-	Vector3 position; 
-	Vector3 scale; 
-	bool drawingEnabled = true;
-	Brick(){
 
+struct Time {
+
+	LARGE_INTEGER lastCount; 
+	LARGE_INTEGER PerformanceFrequencyResult; 
+	int PerformanceFrequency;
+	float DeltaTime; 
+	
+	void Initialize(){
+		QueryPerformanceCounter(&lastCount); 
+		QueryPerformanceFrequency(&PerformanceFrequencyResult);
+		PerformanceFrequency = PerformanceFrequencyResult.QuadPart;
 	}
 
-	Brick(Vector3 pos, Vector3 s) {
-		position = pos; 
-		scale    = s;
+	void Update(){
+
+		LARGE_INTEGER currentCount; 
+		QueryPerformanceCounter( &currentCount);
+		long timeElapsed = (currentCount.QuadPart - lastCount.QuadPart );
+		lastCount = currentCount;
+		DeltaTime = (float) timeElapsed /(float) PerformanceFrequency;
 	}
 };
 
+static Time time; 
 
+float zRotation = 0;
+
+float mouseXDelta = 0; 
+float mouseYDelta = 0;
+
+void ProcessPitch() {
+        camera.forward.x = cos(DEG2RAD * camera.pitch);
+        camera.forward.y = sin(DEG2RAD * camera.pitch);
+		camera.forward.z = cos(DEG2RAD * camera.pitch);
+		Normalize(camera.forward);
+		
+}
+void ProcessYaw() {
+		camera.forward.x *= cos(DEG2RAD * camera.yaw);
+		camera.forward.z *= sin(DEG2RAD * camera.yaw);
+		//Normalize(camera.forward);
+	}
+
+	Vector3 GetRight(){
+	return Cross(camera.forward, Vector3(0, 1,  0) );
+}
+
+
+bool Running = false;
+
+static bool moveForwardState = false;
+static bool moveBackState = false; 
+static bool moveRightState = false;
+static bool moveLeftState = false;
+
+ void ProcessMouseInput(HWND &WindowHandle, WPARAM wParam, LPARAM lParam ) {
+	float mouseSensitivity = 10.0f;
+	//Center of Window
+	POINT cPoint; 
+    cPoint.x =  WindowWidth/2;
+    cPoint.y =  WindowHeight/2;
+    ClientToScreen(WindowHandle, &cPoint);
+
+    //Mouse Pos from Window	
+	long xPos = GET_X_LPARAM(lParam); 
+	long yPos = GET_Y_LPARAM(lParam); 
+	POINT mousePoint;
+	mousePoint.x = xPos;
+	mousePoint.y = yPos;
+    ClientToScreen(WindowHandle, &mousePoint);
+
+    //Get Movement from Center
+	float movementX = float( cPoint.x - mousePoint.x) ;//(lastMouseX ));//*10.0f; 
+	float movementY = float( cPoint.y - mousePoint.y) ;//(lastMouseY ));//*10.0f; 
+
+	//Massage it and put it in delta
+	if(movementX != 0)
+			mouseXDelta = -movementX / mouseSensitivity;
+
+	if(movementY != 0)
+			mouseYDelta = -movementY / mouseSensitivity;
+	//Set cursor back to center
+   SetCursorPos(cPoint.x, cPoint.y);//WindowWidth/2, WindowHeight/2);
+}
+
+void ProcessKeyEventPress( bool isDown, bool wasDown, bool *controlState)
+{
+	if(isDown && !wasDown){
+		*controlState = true;
+	}
+	else if(!isDown && wasDown) {
+		*controlState = false;
+	} 
+}
 
 struct Vertex
 {
@@ -141,10 +256,8 @@ struct Vertex
 	Vector2 uv; 
 };
  	
-Camera camera; 
-float Ds = 0;
-float tanHalfFovy; 
 
+//Window and Buffer Initialization
 global_variable BITMAPINFO bitmapInfo; 
 global_variable void *BitmapMemory; 
 global_variable HBITMAP bitmapHandle; 
@@ -214,7 +327,6 @@ inline Vector3 ConvertNDCToScreen( Vector3 ndcPoint ) {
 	return Vector3( NDCXToScreenPixel( ndcPoint.x), NDCYToScreenPixel( ndcPoint.y), zScreen );
 }
 
-
 Vertex *vertices; 
 int vCount; 
 
@@ -245,8 +357,6 @@ void ProcessVertices()
 	}
 }
 
-
-
 float ParallelArea( Vector3 v1, Vector3 v2, Vector3 v3)
 {
 		Vector3 BA = v2 - v1; 
@@ -257,16 +367,7 @@ float ParallelArea( Vector3 v1, Vector3 v2, Vector3 v3)
 }
 
 
-
-
 void DrawBaryTriangle(   Vector3 &v1,  Vector3 &v2,  Vector3 &v3, Vector3 &color1, Vector3 &color2, Vector3 &color3){
-
-
-	// //Swap order if necesssary 
- //    if(v1.x > v2.x) Swap(&v1, &v2);
-	// if(v1.x > v3.x) Swap(&v1, &v3);
-
-	// if(v2.y > v3.y ) Swap(&v2, &v3);
 
 	// Compute Bounding Box
 	float minX = min3( v1.x, v2.x, v3.x);
@@ -320,7 +421,6 @@ void DrawBaryTriangle(   Vector3 &v1,  Vector3 &v2,  Vector3 &v3, Vector3 &color
 }
  
 //Now need to transform model - view - perspective
-// we are recalculating for every vertice BAD!!!
 inline Vector3 MVP_Transform( Vector3 v, Matrix4 &mvp){
 
 	Vector3 result = Vector3(0,0,0); 
@@ -333,9 +433,6 @@ inline Vector3 MVP_Transform( Vector3 v, Matrix4 &mvp){
 	float divide   = interimResult.w; 
 
 	result = Vector3( interimResult.x / divide,  interimResult.y / divide,  interimResult.z / divide );
-
-	//Now also need NDC matrix for formulas or clipping space
-	//Also, do I want to do clipping? 
 	return result;
 
 }
@@ -369,7 +466,6 @@ void DrawDepthBuffer(){
     {
     	for(int x = 0; x < bitmapWidth; x++){
     	//uint32 *base = (uint32*) BitmapMemory; 
-    	
     	float p = zBuffer[ x + y*bitmapWidth]; 
 
     	float n = camera.nearClip;
@@ -379,20 +475,14 @@ void DrawDepthBuffer(){
     	p *= 2.0f;
 
     	if(p < 1.9){
-
-    		//something
     		cout <<" Hello";
     	}
-
     	//Clamp(p, 0, 1.0f);
 		DrawPixel(GetColor( p, p, p) ,x, y);   
 		}	
     }
 
 }
-
-
-
  /*Graphics Pipeline
 	- Verts are in local space (currently we are lucky in that the verts corespond to NDCs)
 	- Transform to World
@@ -432,17 +522,9 @@ internal void  ResizeDIBSection(int width, int height){
     int pitch  = width * BytesPersPixel; 
 
     zBuffer = new float[width * height];
-    
-
 }
 
-//Game Objects
-static Brick bricks[BRICK_ROWS][BRICK_COLS]; 
-static Brick Paddle = Brick( Vector3(0, -4.0f, zDepth ), Vector3(2.5f, .5f, 1.0f)  ); 
-static Brick ball   = Brick(Vector3(.2f, -1.1,  zDepth),    Vector3(.4, .4, .4)); 
-static Vector3 ballVelocity = Vector3(1, -1, 0);
-
-
+//Draw Vertices of Cube
  void DrawArray(Matrix4 &transform) //Vertex vertices[] , int vCount){
 {  
 	for (int i = 0; i < vCount	; i+=3)
@@ -463,7 +545,6 @@ static Vector3 ballVelocity = Vector3(1, -1, 0);
 	}
 }
 
-
  //Draw Function
  void Render()
  {
@@ -478,38 +559,52 @@ static Vector3 ballVelocity = Vector3(1, -1, 0);
  	proj = Perspective( (camera.fieldOfView * DEG2RAD),  ( (float) bitmapWidth / (float)bitmapHeight ), camera.nearClip, camera.farClip); 
  	Matrix4 mvp;
 
- 	for (int i = 0; i < BRICK_COLS; ++i)
-	{
-		for (int y = 0; y < BRICK_ROWS; ++y)
-		{
-			if( bricks[y][i].drawingEnabled ) 
-			{
- 		  		model.identity();
- 		  		model.Translate( bricks[y][i].position );
- 		  		model.Scale(bricks[y][i].scale );
+ 	static float rotation = 30.0f;
+ 	for (int i = 0; i < ArrayCount(mPositions); ++i)
+ 	{
+ 			model.identity();
+  		  	model.Translate( mPositions[i] );
+  		  	//rotation += time.DeltaTime * 5.0f;
+  		   // model = model.RotateXAxis( rotation);
 
- 		  		mvp = proj * view * model;
- 		 		DrawArray(mvp );
- 			}
- 		}
+  		  	mvp = proj * view * model;
+  		  	DrawArray(mvp );
  	}
 
- 	//Draw Paddle
-	model.identity();
-	model.Translate( Paddle.position);
-	model.Scale( Paddle.scale);
+ 	//Draw Objects Below Here
+ // 	//Draw Bricks
+ // 	for (int i = 0; i < BRICK_COLS; ++i)
+	// {
+	// 	for (int y = 0; y < BRICK_ROWS; ++y)
+	// 	{
+	// 		if( bricks[y][i].drawingEnabled ) 
+	// 		{
+ // 		  		model.identity();
+ // 		  		model.Translate( bricks[y][i].position );
+ // 		  		model.Scale(bricks[y][i].scale );
 
-    mvp = proj * view * model;
- 	DrawArray(mvp );
+ // 		  		mvp = proj * view * model;
+ // 		 		DrawArray(mvp );
+ // 			}
+ // 		}
+ // 	}
+
+ // 	//Draw Paddle
+	// model.identity();
+	// model.Translate( Paddle.position);
+	// model.Scale( Paddle.scale);
+
+ //    mvp = proj * view * model;
+ // 	DrawArray(mvp );
 
 
-	//Draw Ball
-	model.identity();
-	model.Translate( ball.position);
-	model.Scale( ball.scale);// 1.5f, .5f, 1.0f); //bricks[BRICK_ROWS][BRICK_COLS].scale ); 
+	// //Draw Ball
+	// model.identity();
+	// model.Translate( ball.position);
+	// model.Scale( ball.scale);// 1.5f, .5f, 1.0f); //bricks[BRICK_ROWS][BRICK_COLS].scale ); 
 	
-	mvp = proj * view * model;
- 	DrawArray(mvp );
+	// mvp = proj * view * model;
+ // 	DrawArray(mvp );
  }
 
 
@@ -519,214 +614,7 @@ static Vector3 ballVelocity = Vector3(1, -1, 0);
   some vertex colors
 */
 
-float zRotation = 0;
-
- Vector3 mPositions[] = {
-  Vector3( 0.0f,  0.0f,  0.0f), 
-  Vector3( 2.0f,  5.0f, -15.0f), 
-  Vector3(-1.5f, -2.2f, -2.5f),  
-  Vector3(-3.8f, -2.0f, -12.3f),  
-  Vector3( 2.4f, -0.4f, -3.5f),  
-  Vector3(-1.7f,  3.0f, -7.5f),  
-  Vector3( 1.3f, -2.0f, -2.5f),  
-  Vector3( 1.5f,  2.0f, -2.5f), 
-  Vector3( 1.5f,  0.2f, -1.5f), 
-  Vector3(-1.3f,  1.0f, -1.5f),
-
-  Vector3(-3.7f,  3.0f, -7.5f),  
-  Vector3( 3.3f, -2.0f, -2.5f),  
-  Vector3( 4.5f,  4.0f, -8.5f), 
-  Vector3( -4.5f,  5.2f, -9.5f), 
-  Vector3(-3.3f,  -5.0f, -15.5f),
-
-  Vector3(-1.7f, -3.0f, -7.5f),  
-  Vector3( 1.3f, -2.0f, -2.5f),  
-  Vector3( 4.5f, -4.0f, -4.5f), 
-  Vector3( 2.5f,  4.2f, -7.5f), 
-  Vector3(-2.3f,  -5.0f, -7.5f),
-
-  Vector3(-4.7f, -3.3f,  -7.5f),  
-  Vector3( 2.332f, -2.6f, -3.5f),  
-  Vector3( 3.2f, -2.7f, -4.5f), 
-  Vector3(-3.5f,  3.2f, -7.5f), 
-  Vector3(-2.3f,  -2.43f, -7.5f) ,
-
-  Vector3( 6.0f,  0.7f, -4.5f), 
-  Vector3(-5.5f,  -0.2f, -7.5f), 
-  Vector3( 6.1f,  -1.43f, -7.5f) ,
-  Vector3(-7.2f,  -1.2f, -7.5f)
- };
- Vector3 modelPosition = Vector3(.1f, 0, 0);
-
-
-// Vertice Data for for a Cube
-// Vertex Infomation with Position and Color Stored in the Vertices
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	switch( uMsg)
-	{
-		case WM_CREATE: 
-		{
-			
-		}
-		break;
-		case WM_SIZE: 
-		{
-			RECT rect; 
-			GetClientRect(hwnd, &rect); 
-			int width  = rect.right  - rect.left; 
-			int height = rect.bottom - rect.top;
-
-			ResizeDIBSection(width, height); 
-		}break;
-		case WM_DESTROY:
-			PostQuitMessage(0);
-			return 0;
-
-		case WM_PAINT:
-		{
-			
-			PAINTSTRUCT paint;
-
-			HDC DeviceContext = BeginPaint(hwnd, &paint); 
-			int x = paint.rcPaint.left; 
-			int y = paint.rcPaint.top; 
-			int width = paint.rcPaint.right - x; 
-			int height = paint.rcPaint.bottom - y; 
-
-			RECT clientRect ;
-			GetClientRect(hwnd, &clientRect);
-			//PatBlt(DeviceContext, x, y, width, height, WHITENESS); 
-			//RenderUpdate();
-			WindowUpdate(DeviceContext, &clientRect,  x, y , width, height);
-
-
-			EndPaint(hwnd, &paint); 
-
-		}
-		case WM_KEYDOWN:
-		{
-			float speed = DeltaTime * 50.0f;
-			if(wParam == VK_ESCAPE) {
-				PostQuitMessage(0);
-			}
-
-			if(wParam == VK_RIGHT)
-			{
-				modelPosition.x += .2f;
-				Paddle.position.x += speed; // DeltaTime * 20.0f; //.2f;
-			}
-			if(wParam == VK_LEFT)
-			{
-				 modelPosition.x -= .2f;
-				 Paddle.position.x -= speed; //.2f;
-			}
-			if(wParam == VK_DOWN) {
-				 modelPosition.y  -= .2f;
-				//camera.position.z += .2f;
-			}
-			if(wParam == VK_UP) {
-				 modelPosition.y += .2f;
-				 //camera.position.z -= .2f;
-			}
-		}break;
-		return 0;
-	}
-
-	return DefWindowProc(hwnd, uMsg, wParam ,lParam);
-}
-
-bool Running = false;
-
-// Game Initialization
-void InitializeBricks() {
-	for (int i = 0; i < BRICK_COLS; ++i)
-	{
-		for (int y = 0; y < BRICK_ROWS; ++y)
-		{
-			bricks[y][i].position = Vector3(  -6 + (13.0f * ( (float) ((float)y/(float)BRICK_ROWS)) ) , 4.0f + -4.0f*(( float) ((float)i / (float)BRICK_COLS)) ,  zDepth);
-			bricks[y][i].scale    = Vector3(1.5f, .6f, 1.0f); 
-		}
-	}
-}
-
-void InitializePaddles() {
-//Paddle Starting Positions
-
-}
-
-bool InRange(float v, float min, float max ){
-	return (v >= min) && (v <= max);
-}
-
-bool InArea(Vector3 pos,  Vector3 pos2, Vector3 scale)
-{
-	float scaleX = scale.x/2; 
-	float scaleY = scale.y/2;
-
-	if( InRange(pos.y, pos2.y-scaleY, pos2.y+scaleY))
-	{
-		return( InRange(pos.x, pos2.x-scaleX, pos2.x+scaleX ) );
-	}
-	else
-	return false;
-
-}
-LARGE_INTEGER LastCounter; 
-
-
-
-void UpdateGame() {
-//Check Stuff
-		ball.position += ballVelocity *  5.0f * DeltaTime;
-
-		//Check Wall Boundaries
-		if(ball.position.y < -5.5){
-			ballVelocity.y = 1;
-		}
-
-		if(ball.position.x > 7 ){
-			ballVelocity.x = -1;
-		}
-
-		if(ball.position.x < -7 ){
-			ballVelocity.x = 1;
-		}
-
-		if(ball.position.y > 5 ){
-			ballVelocity.y = -1;
-		}
-
-		for (int i = 0; i < BRICK_COLS; ++i)
-	   {
-		for (int y = 0; y < BRICK_ROWS; ++y)
-		{
-			if(!bricks[y][i].drawingEnabled) continue; 
-
-			Vector3 brickPos = bricks[y][i].position;
-			float scaleX = bricks[y][i].scale.x /2.0f;
-			float scaleY = bricks[y][i].scale.y /2.0f;
-			
-			if( InRange(ball.position.y, brickPos.y-scaleY, brickPos.y+scaleY))
-			{
-				if( InRange(ball.position.x, brickPos.x-scaleX, brickPos.x+scaleX ) )
-				{
-					bricks[y][i].drawingEnabled = false;
-					ballVelocity.y = -ballVelocity.y;
-				}
-			}
-
-		}
-	}
-
-		//Check Paddlef
-		if(InArea(ball.position, Paddle.position, Paddle.scale))
-		{
-			float dist = Magnitude( ball.position-Paddle.position);
-			ballVelocity.y = 1;
-		}
-}
-
+//Positions to place the boxes
 
  void RenderUpdateTest(Vertex vertices[] , int vCount){
 
@@ -783,6 +671,183 @@ void UpdateGame() {
 
 
 
+void UpdateCamera(){
+// process Matrices and Vertex Buffer
+    tanHalfFovy = tan( camera.fieldOfView / 2.0f); 
+	Ds = 1.0f / tanHalfFovy;
+
+	camera.view = LookAt( camera.position, camera.position + camera.forward, Vector3(0,1,0)  );
+	camera.proj = Perspective(  camera.fieldOfView * DEG2RAD, (float)bitmapWidth / (float) bitmapHeight, camera.nearClip, camera.farClip); 
+
+}
+
+// Vertice Data for for a Cube
+// Vertex Infomation with Position and Color Stored in the Vertices
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch( uMsg)
+	{
+		case WM_CREATE: 
+		{
+			
+		}
+		break;
+		case WM_SIZE: 
+		{
+			RECT rect; 
+			GetClientRect(hwnd, &rect); 
+			int width  = rect.right  - rect.left; 
+			int height = rect.bottom - rect.top;
+
+			ResizeDIBSection(width, height); 
+		}break;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			return 0;
+
+		case WM_PAINT:
+		{
+			
+			PAINTSTRUCT paint;
+
+			HDC DeviceContext = BeginPaint(hwnd, &paint); 
+			int x = paint.rcPaint.left; 
+			int y = paint.rcPaint.top; 
+			int width = paint.rcPaint.right - x; 
+			int height = paint.rcPaint.bottom - y; 
+
+			RECT clientRect ;
+			GetClientRect(hwnd, &clientRect);
+			//PatBlt(DeviceContext, x, y, width, height, WHITENESS); 
+			//RenderUpdate();
+			WindowUpdate(DeviceContext, &clientRect,  x, y , width, height);
+
+
+			EndPaint(hwnd, &paint); 
+
+		}
+		case WM_KEYDOWN:
+		{
+			float speed = time.DeltaTime * 50.0f;
+			if(wParam == VK_ESCAPE) {
+				PostQuitMessage(0);
+			}
+
+			if(wParam == VK_RIGHT)
+			{
+				//modelPosition.x += .2f;
+				//Paddle.position.x += speed; // DeltaTime * 20.0f; //.2f;
+			}
+			if(wParam == VK_LEFT)
+			{
+				// modelPosition.x -= .2f;
+				// Paddle.position.x -= speed; //.2f;
+			}
+			if(wParam == VK_DOWN) {
+				// modelPosition.y  -= .2f;
+				//camera.position.z += .2f;
+			}
+			if(wParam == VK_UP) {
+				// modelPosition.y += .2f;
+				 //camera.position.z -= .2f;
+			}
+		}break;
+		return 0;
+	}
+
+	return DefWindowProc(hwnd, uMsg, wParam ,lParam);
+}
+
+
+
+void HandleWindowsMessages(HWND &WindowHandle)
+ {
+ 	MSG msg;
+	if(PeekMessage(&msg, NULL,0, 0, PM_REMOVE )) 
+	{ 
+
+		switch(msg.message) {
+
+		case WM_SYSKEYDOWN:
+		case WM_SYSKEYUP:
+		case WM_KEYDOWN:
+		case WM_KEYUP:
+		{
+			LPARAM lParam = msg.lParam;
+			WPARAM wParam = msg.wParam;
+
+			bool wasDown = ( (1 << 30) & lParam ) != 0 ? true : false; 
+			bool isDown  = ( (1 << 31) & lParam ) == 0 ? true : false; 
+
+			if(wParam == VK_ESCAPE) {
+				PostQuitMessage(0);
+				Running = false;
+			}
+
+			if(wParam == VK_RIGHT || wParam =='D')
+			{
+				ProcessKeyEventPress(isDown, wasDown, &moveRightState);
+
+			}else
+			if(wParam == VK_LEFT || wParam =='A')
+			{
+				ProcessKeyEventPress(isDown, wasDown, &moveLeftState);
+
+			} else
+			if(wParam == VK_DOWN || wParam =='S') {
+
+				ProcessKeyEventPress(isDown, wasDown, &moveBackState);
+
+			}else
+			if(wParam == VK_UP || wParam == 'W') {
+
+				ProcessKeyEventPress(isDown, wasDown, &moveForwardState);//moveBackforward.down = true;
+			}
+			
+			}break; 
+			case WM_MOUSEMOVE: 
+			{
+				ProcessMouseInput(WindowHandle, msg.wParam, msg.lParam);
+			
+			}break;
+			default:
+			{
+
+			   TranslateMessage(&msg); 
+			   DispatchMessage( &msg); 
+			}
+		}
+		
+	}
+}
+
+
+
+
+void FPSLoop(){
+
+		camera.yaw   += mouseXDelta * time.DeltaTime * 40;
+		camera.pitch += mouseYDelta * time.DeltaTime * 40;
+
+  		float moveSpeed = 5.0f;
+	    if(moveForwardState == true) {
+			camera.position += camera.forward * time.DeltaTime * moveSpeed;
+		}
+
+		if(moveBackState == true) {
+			camera.position -= camera.forward * time.DeltaTime * moveSpeed;
+		}
+
+		if(moveRightState)
+			camera.position += GetRight() * time.DeltaTime * moveSpeed;
+
+		if(moveLeftState)
+			camera.position -= GetRight() * time.DeltaTime * moveSpeed;
+
+        ProcessPitch();
+	    ProcessYaw();
+}
+
 int CALLBACK WinMain(
     HINSTANCE Instance,
     HINSTANCE PrevInstance,
@@ -809,59 +874,39 @@ int CALLBACK WinMain(
 
 	ShowWindow(WindowHandle, WindowShow);
 
-	// process Matrices and Vertex Buffer
-    tanHalfFovy = tan( camera.fieldOfView / 2.0f); 
-	Ds = 1.0f / tanHalfFovy;
-
-	camera.view = LookAt( camera.position, camera.position + camera.forward, Vector3(0,1,0)  );
-	camera.proj = Perspective(  camera.fieldOfView * DEG2RAD, (float)bitmapWidth / (float) bitmapHeight, camera.nearClip, camera.farClip); 
-
+	UpdateCamera();
 	ProcessVertices();
-	InitializeBricks(); 
-	InitializePaddles();
 
-	LARGE_INTEGER PerfCountFrequency; 
-	QueryPerformanceFrequency(&PerfCountFrequency);
-	QueryPerformanceCounter(&LastCounter);
+	time.Initialize();
+
+	float lastMouseX   = 0, lastMouseY = 0;
+	float ignoreDeltaX = 0, ignoreDeltaY = 0;
+
+	SetCapture(WindowHandle);
  
-
 	//MSG msg = {}; 
 	Running = true;
 	while(Running ) 
 	{
+		mouseYDelta = 0;
+		mouseXDelta = 0;
+
 		MSG msg; 
-		//GetMessage( &msg, NULL, 0, 0))  
-		if(PeekMessage(&msg, 0,0, 0, PM_REMOVE )) { 
-
-			if( msg.message == WM_QUIT)
-			{
-				Running = false;
-			}
-			TranslateMessage(&msg); 
-			DispatchMessage( &msg); 
-		}
-
-		UpdateGame(); 
-
+		HandleWindowsMessages(WindowHandle);
+		//ClearScreen
 		DrawSquare(GetColor(0,0,0),0, 0, bitmapWidth-1, bitmapHeight-1);
-
 	    for (int i = 0; i < (bitmapWidth) * (bitmapHeight ) ; i++)
 	    {
 	    	zBuffer[i] = -111111.0f;
 	    }
-		Render();
-		//DrawDepthBuffer();
-		//RenderUpdateTest(vertices, vCount);
-		UpdateWindow(GetDC(WindowHandle));
-		//Process Time
-		LARGE_INTEGER EndCounter; 
-		QueryPerformanceCounter(&EndCounter);
-		long TimeElapsedInt = EndCounter.QuadPart - LastCounter.QuadPart;
-		LastCounter = EndCounter; 
-		DeltaTime = (double) ( (double)TimeElapsedInt / (double)PerfCountFrequency.QuadPart); 
 
-		//char buffer[256]; 
-		//sprintf(buffer, "% delta time", DeltaTime);
+	    FPSLoop();
+		Render();
+		
+		UpdateWindow(GetDC(WindowHandle));
+
+		time.Update();
+
 	}
 
 

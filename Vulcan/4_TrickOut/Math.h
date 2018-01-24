@@ -419,7 +419,7 @@ inline Matrix4 Perspective( float fov, float aspectRatio,  float n, float f) {
 
 void PrintVector( Vector3 v) {
 	char buffer[256];
-	wsprintf(buffer, "Vec3 : %d %d %d \n", v.x, v.y, v.z );
+	//wsprintf(buffer, "Vec3 : %d %d %d \n", v.x, v.y, v.z );
 }
 
 Matrix4 LookAt(Vector3 pos, Vector3 target, Vector3 up) {
@@ -436,7 +436,7 @@ Matrix4 LookAt(Vector3 pos, Vector3 target, Vector3 up) {
 	      -Dot(right, pos),    -Dot(localUp, pos),    -Dot(facing, pos),  1.0f );
 
 	char buffer[256];
-	wsprintf(buffer, "LocalUp: %d %d %d - UP %d %d %d", localUp.x, localUp.y, localUp.z, up.x, up.y, up.z );
+	//wsprintf(buffer, "LocalUp: %d %d %d - UP %d %d %d", localUp.x, localUp.y, localUp.z, up.x, up.y, up.z );
 	return result;
 }
 
@@ -458,40 +458,25 @@ float Clamp(float value, float min, float max){
 	return result;
 }
 
+float min(float v1, float v2){
+	if(v1 < v2)
+		return v1;
+	else 
+		return v2;
+}
 
-
+float max(float v1, float v2){
+	if(v2 > v1)
+		return v2;
+	else 
+		return v1;
+}
 
 inline int ABS(int val){
 
 	if(val < 0) return val * -1;
 
 	 return val;
-}
-
-
-float Max( float a, float b){
-	if(a > b)
-		return a; 
-	else
-		return b;
-}
-
-float Min(float a, float b){
-	if( a > b)
-		return b; 
-	else 
-		return a;
-}
-float min3( float f1, float f2, float f3){
-	float result = Min(f1, f2);
-	result = Min(result, f3);
-	return result;
-}
-
-float max3(float f1, float f2, float f3){
-	float result = Max(f1, f2); 
-	result = Max(result, f3);
-	return result;
 }
 // Matrix4 LookAt(Vector3 pos, Vector3 target, Vector3 up) {
 
